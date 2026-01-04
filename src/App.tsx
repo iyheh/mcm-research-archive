@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
 import { 
   Dna, FileText, 
-  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles 
+  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles, Globe 
 } from 'lucide-react';
-import { projectInfo, geneAnalysis, glossary } from './data/index';
-import articlesData from './data.json';
+import { 
+  projectInfo, geneAnalysis, glossary,
+  projectInfoEn, lungDataEn, ovarianDataEn, sarcomaDataEn, glossaryEn
+} from './data/index';
+import articlesDataKo from './data.json';
+import articlesDataEn from './dataEn.json';
 import { serverStats as initialStats } from './serverData';
 import { GridBackground, CountUp, StatusIndicator, GenePattern, ProteinViewer, ServerActivityChart, ThemeMode, DeepDiveReport } from './Visuals';
+
+// --- Data Helper ---
+const geneAnalysisEn = {
+  lung: lungDataEn,
+  ovarian: ovarianDataEn,
+  sarcoma: sarcomaDataEn
+};
 
 // --- Components ---
 
@@ -26,10 +37,10 @@ const StatCard = ({ label, value, sub, icon: Icon, isLive = false }: any) => (
   </div>
 );
 
-const GeneModal = ({ gene, onClose, theme, onDeepDive }: { gene: any, onClose: () => void, theme: ThemeMode, onDeepDive: (gene: any) => void }) => {
+const GeneModal = ({ gene, onClose, theme, onDeepDive, articles }: { gene: any, onClose: () => void, theme: ThemeMode, onDeepDive: (gene: any) => void, articles: any[] }) => {
   if (!gene) return null;
 
-  const relatedArticle = articlesData.find((a: any) => {
+  const relatedArticle = articles.find((a: any) => {
     if (gene.article_id) return Number(a.id) === Number(gene.article_id);
     return (a.title && a.title.toLowerCase().includes(gene.name.toLowerCase())) || 
            (a.summary && a.summary.toLowerCase().includes(gene.name.toLowerCase()));
@@ -179,17 +190,17 @@ const SectionHeader = ({ title, sub, icon: Icon }: any) => (
 
 // --- Pages ---
 
-const Dashboard = () => (
+const Dashboard = ({ info, analysis }: { info: any, analysis: any }) => (
   <div className="space-y-16 animate-in fade-in duration-500 relative z-10">
     <div className="py-12 border-b border-border-main">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-6">
         <div>
           <StatusIndicator />
           <h1 className="text-5xl md:text-8xl font-black text-main mt-6 mb-4 leading-none tracking-tighter">
-            {projectInfo.title}
+            {info.title}
           </h1>
           <p className="text-xl text-sub max-w-2xl font-light">
-            {projectInfo.description}
+            {info.description}
           </p>
         </div>
         <div className="hidden md:block text-right">
@@ -199,16 +210,16 @@ const Dashboard = () => (
       </div>
     </div>
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <StatCard icon={Dna} {...projectInfo.stats[1]} />
-      <StatCard icon={Microscope} {...projectInfo.stats[2]} />
-      <StatCard icon={Cpu} {...projectInfo.stats[3]} />
+      <StatCard icon={Dna} {...info.stats[1]} />
+      <StatCard icon={Microscope} {...info.stats[2]} />
+      <StatCard icon={Cpu} {...info.stats[3]} />
       <StatCard icon={FileText} label="Research Papers" value="16+" sub="Published Findings" />
     </div>
     {/* Key Research Highlights */}
     <div className="pt-8">
       <SectionHeader title="Target Sectors" sub="Active Research Areas" icon={Dna} />
       <div className="grid md:grid-cols-3 gap-8">
-        {Object.entries(geneAnalysis).map(([key, data]: any) => {
+        {Object.entries(analysis).map(([key, data]: any) => {
           const status = key === 'lung' ? 'Analysis' : key === 'ovarian' ? 'Computation' : 'Paused';
           const isActive = status !== 'Paused';
           
@@ -308,14 +319,14 @@ const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
   );
 };
 
-const AnalysisPage = ({ theme, onDeepDive }: { theme: ThemeMode, onDeepDive: (gene: any) => void }) => {
+const AnalysisPage = ({ theme, onDeepDive, analysis, articles }: { theme: ThemeMode, onDeepDive: (gene: any) => void, analysis: any, articles: any[] }) => {
   const [selectedGene, setSelectedGene] = useState<any>(null);
   return (
     <>
-      <GeneModal gene={selectedGene} onClose={() => setSelectedGene(null)} theme={theme} onDeepDive={(g) => { setSelectedGene(null); onDeepDive(g); }} />
+      <GeneModal gene={selectedGene} onClose={() => setSelectedGene(null)} theme={theme} onDeepDive={(g) => { setSelectedGene(null); onDeepDive(g); }} articles={articles} />
       <div className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10 pt-10">
         <div className="border-l-4 border-accent pl-8"><h2 className="text-6xl font-black mb-4 text-main uppercase tracking-tighter">Analysis Lab</h2><p className="text-sub max-w-2xl text-2xl font-light">Decoded genetic sequences from distributed computing grid.</p></div>
-        {Object.entries(geneAnalysis).map(([key, data]: any) => (
+        {Object.entries(analysis).map(([key, data]: any) => (
           <div key={key} className="scroll-mt-20">
             <div className="flex items-center gap-4 mb-8"><span className="text-accent font-black text-2xl">0{key === 'lung' ? 1 : key === 'ovarian' ? 2 : 3}</span><h3 className="text-4xl font-black text-main uppercase">{data.title}</h3></div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">{data.genes.map((gene: any) => (<GeneCard key={gene.name} gene={gene} onClick={setSelectedGene} theme={theme} />))}</div>
@@ -331,7 +342,14 @@ const AnalysisPage = ({ theme, onDeepDive }: { theme: ThemeMode, onDeepDive: (ge
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState<ThemeMode>('clinical');
+  const [lang, setLang] = useState<'ko' | 'en'>('ko'); // Language State
   const [deepDiveGene, setDeepDiveGene] = useState<any>(null);
+
+  // Data Selection based on Language
+  const currentProjectInfo = lang === 'ko' ? projectInfo : projectInfoEn;
+  const currentGeneAnalysis = lang === 'ko' ? geneAnalysis : geneAnalysisEn;
+  const currentGlossary = lang === 'ko' ? glossary : glossaryEn;
+  const currentArticles = lang === 'ko' ? articlesDataKo : articlesDataEn;
 
   if (deepDiveGene) {
     return (
@@ -357,34 +375,42 @@ function App() {
                   <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 text-xs font-bold transition-all rounded-md ${activeTab === tab ? 'bg-card-hover text-main shadow-sm' : 'text-sub hover:text-main hover:bg-card-hover/50'}`}>{tab.toUpperCase()}</button>
                 ))}
               </div>
-              <button onClick={() => setTheme(t => t === 'tech' ? 'clinical' : 'tech')} className="p-2 text-sub hover:text-accent transition-colors bg-card border border-border-main rounded-md">{theme === 'tech' ? <Sun size={20} /> : <Moon size={20} />}</button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setLang(l => l === 'ko' ? 'en' : 'ko')} 
+                  className="p-2 text-xs font-black text-sub hover:text-accent transition-colors bg-card border border-border-main rounded-md flex items-center gap-1 uppercase w-16 justify-center"
+                >
+                  {lang === 'ko' ? 'KR' : 'EN'}
+                </button>
+                <button onClick={() => setTheme(t => t === 'tech' ? 'clinical' : 'tech')} className="p-2 text-sub hover:text-accent transition-colors bg-card border border-border-main rounded-md">{theme === 'tech' ? <Sun size={20} /> : <Moon size={20} />}</button>
+              </div>
             </div>
           </div>
         </div>
       </nav>
       <main className="flex-1 max-w-7xl mx-auto px-6 pb-20 w-full z-10">
-        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'dashboard' && <Dashboard info={currentProjectInfo} analysis={currentGeneAnalysis} />}
         {activeTab === 'statistics' && <StatisticsPage theme={theme} />}
-        {activeTab === 'analysis' && <AnalysisPage theme={theme} onDeepDive={setDeepDiveGene} />}
-        {activeTab === 'wiki' && <WikiPage />}
-        {activeTab === 'archive' && <ArchiveList />}
+        {activeTab === 'analysis' && <AnalysisPage theme={theme} onDeepDive={setDeepDiveGene} analysis={currentGeneAnalysis} articles={currentArticles} />}
+        {activeTab === 'wiki' && <WikiPage glossary={currentGlossary} />}
+        {activeTab === 'archive' && <ArchiveList articles={currentArticles} />}
       </main>
     </div>
   );
 }
 
 // Helper components moved for brevity but should be defined
-const WikiPage = () => (
+const WikiPage = ({ glossary }: { glossary: any[] }) => (
   <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 relative z-10 pt-10">
     <div className="text-center border-b border-border-main pb-12"><h2 className="text-6xl font-black text-main mb-4 tracking-tighter">WIKI</h2><p className="text-accent font-bold tracking-widest uppercase">Terminology Database</p></div>
     <div className="grid gap-6">{glossary.map((item, idx) => (<div key={idx} className="bg-card p-8 border border-border-main hover:border-accent transition-all group"><h3 className="text-2xl font-black text-main mb-4 group-hover:text-accent transition-colors">{item.term}</h3><p className="text-sub leading-relaxed text-lg">{item.def}</p></div>))}</div>
   </div>
 );
 
-const ArchiveList = () => (
+const ArchiveList = ({ articles }: { articles: any[] }) => (
   <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 relative z-10 pt-10">
-    <div className="flex justify-between items-end mb-12 border-b-4 border-main pb-4"><h2 className="text-6xl font-black text-main tracking-tighter">ARCHIVE</h2><span className="text-xl font-bold text-accent">{articlesData.length} ITEMS</span></div>
-    <div className="grid gap-4">{articlesData.map((article: any) => (<a key={article.id} href={article.link} target="_blank" rel="noreferrer" className="flex flex-col md:flex-row items-start md:items-center justify-between bg-card p-6 border border-border-main hover:bg-accent hover:text-accent-contrast transition-all group"><div className="flex-1"><div className="flex items-center gap-3 mb-2"><span className="text-xs font-bold uppercase tracking-wider border border-border-main px-2 py-0.5 group-hover:border-black/20">{article.category}</span><span className="text-sub text-xs font-bold group-hover:text-accent-contrast/60">{article.date}</span></div><h3 className="text-xl font-bold text-main group-hover:text-accent-contrast transition-colors">{article.title}</h3></div><ArrowRight size={24} className="text-sub mt-4 md:mt-0 group-hover:text-accent-contrast transition-colors" /></a>))}</div>
+    <div className="flex justify-between items-end mb-12 border-b-4 border-main pb-4"><h2 className="text-6xl font-black text-main tracking-tighter">ARCHIVE</h2><span className="text-xl font-bold text-accent">{articles.length} ITEMS</span></div>
+    <div className="grid gap-4">{articles.map((article: any) => (<a key={article.id} href={article.link} target="_blank" rel="noreferrer" className="flex flex-col md:flex-row items-start md:items-center justify-between bg-card p-6 border border-border-main hover:bg-accent hover:text-accent-contrast transition-all group"><div className="flex-1"><div className="flex items-center gap-3 mb-2"><span className="text-xs font-bold uppercase tracking-wider border border-border-main px-2 py-0.5 group-hover:border-black/20">{article.category}</span><span className="text-sub text-xs font-bold group-hover:text-accent-contrast/60">{article.date}</span></div><h3 className="text-xl font-bold text-main group-hover:text-accent-contrast transition-colors">{article.title}</h3></div><ArrowRight size={24} className="text-sub mt-4 md:mt-0 group-hover:text-accent-contrast transition-colors" /></a>))}</div>
   </div>
 );
 
