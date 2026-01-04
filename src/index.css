@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+:root {
+  /* Default (Tech/Dark) */
+  --bg-page: #09090b;
+  --bg-card: #18181b;
+  --bg-card-hover: #27272a;
+  --border-main: #27272a;
+  --text-main: #ffffff;
+  --text-sub: #a1a1aa;
+  --accent: #a3e635;
+  --accent-glow: rgba(163, 230, 53, 0.3);
+  --accent-contrast: #000000;
+  
+  --chart-grid: #333333;
+}
+
+.theme-clinical {
+  /* Clinical (Light/Clean) */
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-main: #e2e8f0;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --accent: #0284c7; /* Sky 600 - Clinical Blue */
+  --accent-glow: rgba(2, 132, 199, 0.15);
+  --accent-contrast: #ffffff;
+
+  --chart-grid: #e2e8f0;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Utility Classes for Dynamic Theming */
+@utility bg-page { background-color: var(--bg-page); }
+@utility bg-card { background-color: var(--bg-card); }
+@utility bg-card-hover { background-color: var(--bg-card-hover); }
+@utility border-main { border-color: var(--border-main); }
+@utility text-main { color: var(--text-main); }
+@utility text-sub { color: var(--text-sub); }
+@utility text-accent { color: var(--accent); }
+@utility bg-accent { background-color: var(--accent); }
+@utility border-accent { border-color: var(--accent); }
+@utility text-accent-contrast { color: var(--accent-contrast); }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-main); 
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-sub);
+}
+
+/* Animations */
+@keyframes scan-vertical {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-scan-vertical {
+  position: absolute;
+  animation: scan-vertical 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  background: linear-gradient(to right, 
+    transparent, 
+    var(--accent) 20%, 
+    var(--accent) 80%, 
+    transparent
+  );
+  box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+  width: 100%;
+}
