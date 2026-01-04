@@ -389,13 +389,15 @@ function App() {
       <GridBackground theme={theme} />
       
       {/* Gene Modal - High Z-index to cover everything including nav */}
-      <GeneModal 
-        gene={selectedGene} 
-        onClose={() => setSelectedGene(null)} 
-        theme={theme} 
-        onDeepDive={(g) => { setSelectedGene(null); setDeepDiveGene(g); }} 
-        articles={currentArticles} 
-      />
+      {selectedGene && (
+        <GeneModal 
+          gene={selectedGene} 
+          onClose={() => setSelectedGene(null)} 
+          theme={theme} 
+          onDeepDive={(g) => { setSelectedGene(null); setDeepDiveGene(g); }} 
+          articles={currentArticles} 
+        />
+      )}
 
       {/* Navigation */}
       <nav className={`bg-page/90 backdrop-blur-sm border-b border-border-main sticky top-0 z-50 transition-all duration-500 ${selectedGene ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
