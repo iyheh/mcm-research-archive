@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Dna, Zap } from 'lucide-react';
 
 // Theme Type Definition
 export type ThemeMode = 'tech' | 'clinical';
@@ -358,7 +357,6 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: Them
 
           {/* Detailed Sections */}
           {gene.deepDive.sections.map((section: any, idx: number) => {
-            const hasVisual = section.figure || section.multiFigures;
             return (
               <section key={idx} className="pt-24 border-t border-border-main/30 grid lg:grid-cols-2 gap-20 items-stretch">
                 <div className={`space-y-8 ${idx % 2 === 1 ? 'lg:order-last' : ''}`}>

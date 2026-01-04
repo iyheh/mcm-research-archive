@@ -363,7 +363,7 @@ function App() {
         </div>
       </nav>
       <main className="flex-1 max-w-7xl mx-auto px-6 pb-20 w-full z-10">
-        {activeTab === 'dashboard' && <Dashboard theme={theme} />}
+        {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'statistics' && <StatisticsPage theme={theme} />}
         {activeTab === 'analysis' && <AnalysisPage theme={theme} onDeepDive={setDeepDiveGene} />}
         {activeTab === 'wiki' && <WikiPage />}
