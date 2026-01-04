@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
+import {
   Dna, FileText, 
-  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles 
-} from 'lucide-react';
-import { 
+  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles, Globe, Menu 
+} from 'lucide-react';import { 
   projectInfo, geneAnalysis, glossary,
   projectInfoEn, lungDataEn, ovarianDataEn, sarcomaDataEn, glossaryEn
 } from './data/index';
