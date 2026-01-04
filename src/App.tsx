@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Dna, FileText, 
-  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles, Globe 
+  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles 
 } from 'lucide-react';
 import { 
   projectInfo, geneAnalysis, glossary,
