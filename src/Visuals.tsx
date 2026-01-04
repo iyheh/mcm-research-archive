@@ -60,7 +60,7 @@ export const CountUp = ({ value, duration = 1500 }: { value: string, duration?: 
   return (
     <span>
       {isFloat ? displayValue.toFixed(1) : Math.floor(displayValue)}
-      <span className="text-sm ml-1 opacity-80">{suffix}</span>
+      <span className="ml-1 opacity-80">{suffix}</span>
     </span>
   );
 };
