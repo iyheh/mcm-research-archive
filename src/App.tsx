@@ -293,6 +293,15 @@ const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
       });
   }, []);
 
+  const formatRuntime = (raw: string) => {
+    if (!raw) return "";
+    const parts = raw.split(':');
+    if (parts.length !== 5) return raw; // Fallback if format doesn't match
+    // y, d, h, m, s
+    const units = ['y', 'd', 'h', 'm', 's'];
+    return parts.map((part, i) => `${parseInt(part)}${units[i]}`).join(' ');
+  };
+
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10 pt-4">
       <div className="border-b border-border-main pb-8 mb-8">
@@ -300,7 +309,7 @@ const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
         <p className="text-sub font-mono text-sm">Real-time data synchronization with World Community Grid</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Total Run Time" value={stats.runtime} sub="Global Contribution" icon={Clock} isLive={true} />
+        <StatCard label="Today's Run Time" value={formatRuntime(stats.runtime)} sub="Global Contribution" icon={Clock} isLive={true} />
         <StatCard label="Points Generated" value={stats.points} sub="Computed Data" icon={Zap} isLive={true} />
         <StatCard label="Results Returned" value={stats.results} sub="Packets Processed" icon={Database} isLive={true} />
         <StatCard label="Active Volunteers" value="82,400+" sub="Global Grid Nodes" icon={Users} isLive={true} />
