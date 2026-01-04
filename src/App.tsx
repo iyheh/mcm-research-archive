@@ -342,7 +342,8 @@ const AnalysisPage = ({ theme, onDeepDive, analysis, articles }: { theme: ThemeM
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState<ThemeMode>('clinical');
-  const [lang, setLang] = useState<'ko' | 'en'>('ko'); // Language State
+  // Default to English in Production, Korean in Development
+  const [lang, setLang] = useState<'ko' | 'en'>(import.meta.env.PROD ? 'en' : 'ko');
   const [deepDiveGene, setDeepDiveGene] = useState<any>(null);
 
   // Data Selection based on Language
