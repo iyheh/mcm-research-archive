@@ -20,7 +20,12 @@
 *   **Neon Activity Chart**: 최근 14일간의 연산량(Points)과 결과(Results) 추이를 **Neon Lime Line Chart**로 시각화했습니다.
 *   **Access Log Table**: 서버 터미널 스타일의 로그 테이블로 일자별 상세 데이터를 제공합니다.
 
-### 3. 🎨 High-Contrast Tech Minimal Design
+### 3. 📜 Project History Log
+*   **Interactive Timeline**: 2013년부터 이어진 MCM 프로젝트의 연구 흐름을 터미널 스타일 연표로 시각화했습니다.
+*   **Original PDF Archive**: 각 마일스톤에 해당하는 원본 업데이트 문서(PDF)를 웹상에서 바로 열람하거나 다운로드할 수 있습니다.
+*   **Multi-language Support**: 연구 히스토리는 한국어와 영어를 모두 지원합니다.
+
+### 4. 🎨 High-Contrast Tech Minimal Design
 *   **Theme**: Deep Black (`#09090b`) 배경과 Neon Lime (`#a3e635`) 액센트 컬러를 사용한 몰입감 높은 UI.
 *   **Visuals**: 정적 노이즈 그리드 배경, 마우스 반응형 인터랙션, 글리치 텍스트 효과 등 사이버펑크/Sci-Fi 감성 적용.
 
@@ -29,6 +34,7 @@
 ## 🛠️ Tech Stack
 
 *   **Frontend**: React (Vite), TypeScript, Tailwind CSS
+*   **Routing**: Custom Hash-based Routing (SPA Compatible)
 *   **3D Engine**: 3Dmol.js (WebGL based)
 *   **Data Pipeline**: Python (BeautifulSoup4, Requests)
 *   **Icons**: Lucide React
@@ -65,15 +71,20 @@ npm run dev
 
 ```
 mcm-research-archive/
+├── public/
+│   └── history_assets/         # MCM 프로젝트 연도별 업데이트 원본 PDF
 ├── scripts/
 │   ├── fetch_real_data_bs4.py  # WCG 통계 크롤링 (핵심)
 │   └── ...
 ├── src/
-│   ├── Visuals.tsx    # 3D 뷰어, 차트, 패턴 생성기 등 시각화 컴포넌트
-│   ├── App.tsx        # 메인 레이아웃 및 페이지 라우팅
-│   ├── serverData.ts  # 크롤링된 실시간 서버 데이터
-│   ├── contents.ts    # 유전자 정보 및 UniProt ID 매핑
-│   └── ...
+│   ├── Visuals.tsx             # 3D 뷰어, 차트, 패턴 생성기 등 시각화 컴포넌트
+│   ├── HistoryTimeline.tsx     # 프로젝트 히스토리 타임라인 & 모달 컴포넌트
+│   ├── App.tsx                 # 메인 레이아웃 및 페이지 라우팅 (Hash Router)
+│   ├── serverData.ts           # 크롤링된 실시간 서버 데이터
+│   ├── contents.ts             # 유전자 정보 및 UniProt ID 매핑
+│   └── data/
+│       ├── projectHistory.ts   # 연도별 업데이트 로그 데이터 (KO/EN)
+│       └── ...
 └── ...
 ```
 

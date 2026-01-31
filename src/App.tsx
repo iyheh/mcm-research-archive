@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Dna, FileText, 
   Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles, Menu 
@@ -11,6 +11,8 @@ import articlesDataKo from './data.json';
 import articlesDataEn from './dataEn.json';
 import { serverStats as initialStats } from './serverData';
 import { GridBackground, CountUp, StatusIndicator, GenePattern, ProteinViewer, ServerActivityChart, ThemeMode, DeepDiveReport } from './Visuals';
+import { HistoryTimeline, LogDetailModal } from './HistoryTimeline';
+import { HistoryLog, projectHistoryKo, projectHistoryEn } from './data/projectHistory';
 
 // --- Data Helper ---
 const geneAnalysisEn = {
@@ -364,6 +366,7 @@ function App() {
   const [lang, setLang] = useState<'ko' | 'en'>(import.meta.env.PROD ? 'en' : 'ko');
   const [deepDiveGene, setDeepDiveGene] = useState<any>(null);
   const [selectedGene, setSelectedGene] = useState<any>(null); // Managed globally for UI overlay
+  const [selectedLog, setSelectedLog] = useState<HistoryLog | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Data Selection based on Language
@@ -371,25 +374,116 @@ function App() {
   const currentGeneAnalysis = lang === 'ko' ? geneAnalysis : geneAnalysisEn;
   const currentGlossary = lang === 'ko' ? glossary : glossaryEn;
   const currentArticles = lang === 'ko' ? articlesDataKo : articlesDataEn;
+  const currentHistoryLogs = lang === 'ko' ? projectHistoryKo : projectHistoryEn;
+
+  // --- Router Logic (Hash-based) ---
+  const updateHash = useCallback((tab: string, type?: 'gene' | 'log', id?: string, action?: 'deep-dive') => {
+    let newHash = `#${tab}`;
+    if (type && id) {
+      newHash += `/${type}/${encodeURIComponent(id)}`;
+      if (action) {
+        newHash += `/${action}`;
+      }
+    }
+    window.location.hash = newHash;
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1); // Remove '#'
+      const parts = hash.split('/');
+      const tab = parts[0] || 'dashboard';
+      const type = parts[1];
+      const id = parts[2] ? decodeURIComponent(parts[2]) : null;
+      const action = parts[3]; // 'deep-dive'
+
+      // Update active tab
+      setActiveTab(tab);
+
+      // Reset states initially
+      setSelectedGene(null);
+      setSelectedLog(null);
+      setDeepDiveGene(null);
+
+      if (!type) return;
+
+      if (type === 'gene' && id) {
+        // Find gene
+        let foundGene = null;
+        Object.values(currentGeneAnalysis).forEach((category: any) => {
+          const gene = category.genes.find((g: any) => g.name === id);
+          if (gene) foundGene = gene;
+        });
+
+        if (action === 'deep-dive' && foundGene && foundGene.deepDive) {
+          setDeepDiveGene(foundGene);
+        } else {
+          setSelectedGene(foundGene);
+        }
+      } else if (type === 'log' && id) {
+        const foundLog = currentHistoryLogs.find((l) => l.id === id);
+        setSelectedLog(foundLog || null);
+      }
+    };
+
+    // Initialize
+    handleHashChange();
+
+    // Listen for changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [currentGeneAnalysis, currentHistoryLogs]); 
+
+  // Wrappers for UI interactions to use Router
+  const handleTabChange = (tabId: string) => {
+    updateHash(tabId);
+    if(isMenuOpen) setIsMenuOpen(false);
+  };
+
+  const handleGeneSelect = (gene: any) => {
+    updateHash('analysis', 'gene', gene.name);
+  };
+
+  const handleLogSelect = (log: HistoryLog) => {
+    updateHash('history', 'log', log.id);
+  };
+
+  const handleCloseModal = () => {
+    updateHash(activeTab);
+  };
+
+  const handleDeepDive = (gene: any) => {
+    updateHash('analysis', 'gene', gene.name, 'deep-dive');
+  };
+
+  // When exiting deep dive via UI button, we want to go back to gene modal
+  const handleExitDeepDive = () => {
+    if (deepDiveGene) {
+      updateHash('analysis', 'gene', deepDiveGene.name);
+    } else {
+      updateHash('analysis');
+    }
+  };
+
 
   if (deepDiveGene) {
     return (
       <div className={`min-h-screen bg-page text-main font-sans selection:bg-accent selection:text-accent-contrast transition-colors duration-300 ${theme === 'clinical' ? 'theme-clinical' : ''}`}>
-        <DeepDiveReport gene={deepDiveGene} theme={theme} onBack={() => setDeepDiveGene(null)} />
+        <DeepDiveReport gene={deepDiveGene} theme={theme} onBack={handleExitDeepDive} />
       </div>
     );
   }
 
-  const TabButton = ({ tab, mobile = false }: { tab: string, mobile?: boolean }) => (
+  const TabButton = ({ id, label, mobile = false }: { id: string, label: string, mobile?: boolean }) => (
     <button 
-      onClick={() => { setActiveTab(tab); if(mobile) setIsMenuOpen(false); }} 
+      onClick={() => handleTabChange(id)} 
       className={`px-4 py-2 text-xs font-bold transition-all rounded-md uppercase ${
-        activeTab === tab 
+        activeTab === id 
           ? 'bg-card-hover text-main shadow-sm' 
           : 'text-sub hover:text-main hover:bg-card-hover/50'
       } ${mobile ? 'w-full text-left py-4 text-sm' : ''}`}
     >
-      {tab}
+      {label}
     </button>
   );
 
@@ -401,18 +495,25 @@ function App() {
       {selectedGene && (
         <GeneModal 
           gene={selectedGene} 
-          onClose={() => setSelectedGene(null)} 
+          onClose={handleCloseModal} 
           theme={theme} 
-          onDeepDive={(g) => { setSelectedGene(null); setDeepDiveGene(g); }} 
+          onDeepDive={handleDeepDive} 
           articles={currentArticles} 
         />
       )}
 
+      {selectedLog && (
+        <LogDetailModal 
+          log={selectedLog}
+          onClose={handleCloseModal}
+        />
+      )}
+
       {/* Navigation */}
-      <nav className={`bg-page/90 backdrop-blur-sm border-b border-border-main sticky top-0 z-50 transition-all duration-500 ${selectedGene ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
+      <nav className={`bg-page/90 backdrop-blur-sm border-b border-border-main sticky top-0 z-50 transition-all duration-500 ${selectedGene || selectedLog ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('dashboard')}>
+            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => handleTabChange('dashboard')}>
               <div className="bg-main text-bg-page p-1.5 group-hover:bg-accent transition-colors"><Dna size={24} strokeWidth={3} /></div>
               <span className="font-black text-2xl text-main tracking-tighter">MCM<span className="text-accent">.INSIGHT</span></span>
             </div>
@@ -420,8 +521,15 @@ function App() {
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-4">
               <div className="flex gap-1 bg-card p-1 rounded-lg border border-border-main">
-                {['dashboard', 'statistics', 'analysis', 'wiki', 'archive'].map(tab => (
-                  <TabButton key={tab} tab={tab} />
+                {[
+                  { id: 'dashboard', label: 'dashboard' },
+                  { id: 'statistics', label: 'statistics' },
+                  { id: 'analysis', label: 'analysis' },
+                  { id: 'history', label: 'history' },
+                  { id: 'wiki', label: 'wiki' },
+                  { id: 'archive', label: 'archive' }
+                ].map(tab => (
+                  <TabButton key={tab.id} id={tab.id} label={tab.label} />
                 ))}
               </div>
               <div className="flex gap-2">
@@ -445,8 +553,15 @@ function App() {
         {/* Mobile Dropdown Menu */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 w-full bg-page border-b border-border-main shadow-2xl p-4 flex flex-col gap-2 animate-in slide-in-from-top-4 duration-200">
-             {['dashboard', 'statistics', 'analysis', 'wiki', 'archive'].map(tab => (
-                <TabButton key={tab} tab={tab} mobile={true} />
+             {[
+                { id: 'dashboard', label: 'dashboard' },
+                { id: 'statistics', label: 'statistics' },
+                { id: 'analysis', label: 'analysis' },
+                { id: 'history', label: 'history' },
+                { id: 'wiki', label: 'wiki' },
+                { id: 'archive', label: 'archive' }
+             ].map(tab => (
+                <TabButton key={tab.id} id={tab.id} label={tab.label} mobile={true} />
              ))}
              <div className="flex gap-2 mt-4 pt-4 border-t border-border-main">
                 <button 
@@ -463,10 +578,11 @@ function App() {
         )}
       </nav>
 
-      <main className={`flex-1 max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full z-10 transition-all duration-500 ${selectedGene ? 'blur-md' : 'blur-0'}`}>
+      <main className={`flex-1 max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full z-10 transition-all duration-500 ${selectedGene || selectedLog ? 'blur-md' : 'blur-0'}`}>
         {activeTab === 'dashboard' && <Dashboard info={currentProjectInfo} analysis={currentGeneAnalysis} />}
         {activeTab === 'statistics' && <StatisticsPage theme={theme} />}
-        {activeTab === 'analysis' && <AnalysisPage theme={theme} onGeneClick={setSelectedGene} analysis={currentGeneAnalysis} />}
+        {activeTab === 'analysis' && <AnalysisPage theme={theme} onGeneClick={handleGeneSelect} analysis={currentGeneAnalysis} />}
+        {activeTab === 'history' && <HistoryTimeline theme={theme} lang={lang} onLogSelect={handleLogSelect} />}
         {activeTab === 'wiki' && <WikiPage glossary={currentGlossary} />}
         {activeTab === 'archive' && <ArchiveList articles={currentArticles} />}
       </main>
