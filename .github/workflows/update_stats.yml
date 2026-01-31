@@ -1,6 +1,9 @@
 name: Auto Update WCG Stats & Deploy
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '0 */6 * * *' # 매 6시간마다 자동 실행 (UTC 기준)
   workflow_dispatch:      # 깃허브 웹에서 수동 실행 버튼 (테스트용)
