@@ -363,7 +363,7 @@ const AnalysisPage = ({ theme, onGeneClick, analysis }: { theme: ThemeMode, onGe
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState<ThemeMode>('clinical');
-  const [lang, setLang] = useState<'ko' | 'en'>(import.meta.env.PROD ? 'en' : 'ko');
+  const [lang, setLang] = useState<'ko' | 'en'>('en');
   const [deepDiveGene, setDeepDiveGene] = useState<any>(null);
   const [selectedGene, setSelectedGene] = useState<any>(null); // Managed globally for UI overlay
   const [selectedLog, setSelectedLog] = useState<HistoryLog | null>(null);
