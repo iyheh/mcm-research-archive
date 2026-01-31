@@ -1,4 +1,7 @@
 # 🧬 MCM Insight System v2.2
+
+[![MCM System Access](https://img.shields.io/badge/LIVE_SYSTEM-ACCESS_GRANTED-a3e635?style=for-the-badge&logo=dna&logoColor=09090b&labelColor=09090b&color=a3e635)](https://iyheh.github.io/mcm-research-archive/)
+
 ### Mapping Cancer Markers: Advanced Research Dashboard
 
 > **"Decoding the blueprint of life, one block at a time."**
