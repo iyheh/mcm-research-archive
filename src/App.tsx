@@ -409,7 +409,7 @@ function App() {
 
       if (type === 'gene' && id) {
         // Find gene
-        let foundGene = null;
+        let foundGene: any = null;
         Object.values(currentGeneAnalysis).forEach((category: any) => {
           const gene = category.genes.find((g: any) => g.name === id);
           if (gene) foundGene = gene;
@@ -582,7 +582,7 @@ function App() {
         {activeTab === 'dashboard' && <Dashboard info={currentProjectInfo} analysis={currentGeneAnalysis} />}
         {activeTab === 'statistics' && <StatisticsPage theme={theme} />}
         {activeTab === 'analysis' && <AnalysisPage theme={theme} onGeneClick={handleGeneSelect} analysis={currentGeneAnalysis} />}
-        {activeTab === 'history' && <HistoryTimeline theme={theme} lang={lang} onLogSelect={handleLogSelect} />}
+        {activeTab === 'history' && <HistoryTimeline lang={lang} onLogSelect={handleLogSelect} />}
         {activeTab === 'wiki' && <WikiPage glossary={currentGlossary} />}
         {activeTab === 'archive' && <ArchiveList articles={currentArticles} />}
       </main>

@@ -144,6 +144,18 @@ export const projectHistoryEn: HistoryLog[] = [
     pdf: '/history_assets/UPDATE-2021-JUN.pdf'
   },
   {
+    id: 'LOG_2021_11',
+    date: '2021.11.16',
+    year: 2021,
+    category: 'MILESTONE',
+    title: '15 Trillion Signatures Tested',
+    summary: 'WCG 17th Anniversary Update. Achieved astronomical computation volume thanks to volunteer contributions.',
+    details: [
+      "Completed testing of over 15 trillion gene signatures accumulatively.",
+      "Lung cancer data showed a general pattern where computation volume increases with signature size.",
+      "Ovarian cancer data proved to have higher computational costs due to the complexity of prognosis prediction.",
+      "Sarcoma analysis confirmed focus on various components affecting predictive ability."
+    ],
     pdf: '/history_assets/UPDATE-2021-NOV.pdf'
   },
   {

@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { HistoryLog, projectHistoryEn, projectHistoryKo } from './data/projectHistory';
 import { FileText, Calendar, ArrowRight, X, Terminal, Download, ExternalLink } from 'lucide-react';
 
 interface TimelineProps {
-  theme: 'tech' | 'clinical';
   lang: 'ko' | 'en';
   onLogSelect: (log: HistoryLog) => void;
 }
@@ -81,7 +79,7 @@ export const LogDetailModal = ({ log, onClose }: { log: HistoryLog, onClose: () 
   );
 };
 
-export const HistoryTimeline = ({ theme, lang, onLogSelect }: TimelineProps) => {
+export const HistoryTimeline = ({ lang, onLogSelect }: TimelineProps) => {
   const historyData = lang === 'ko' ? projectHistoryKo : projectHistoryEn;
 
   return (
@@ -95,7 +93,7 @@ export const HistoryTimeline = ({ theme, lang, onLogSelect }: TimelineProps) => 
       </div>
 
       <div className="relative border-l-2 border-border-main ml-4 md:ml-12 space-y-12">
-        {historyData.map((log, index) => (
+        {historyData.map((log) => (
           <div key={log.id} className="relative pl-8 md:pl-12 group">
             {/* Timeline Node */}
             <div className="absolute -left-[9px] top-0 bg-page border-2 border-border-main text-sub w-4 h-4 rounded-full group-hover:border-accent group-hover:scale-125 transition-all duration-300 z-10"></div>
