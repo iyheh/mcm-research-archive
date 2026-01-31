@@ -1,4 +1,4 @@
-# 🧬 MCM Insight System v2.1
+# 🧬 MCM Insight System v2.2
 ### Mapping Cancer Markers: Advanced Research Dashboard
 
 > **"Decoding the blueprint of life, one block at a time."**
