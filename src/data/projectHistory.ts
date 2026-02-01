@@ -159,6 +159,21 @@ export const projectHistoryEn: HistoryLog[] = [
     pdf: '/history_assets/UPDATE-2021-NOV.pdf'
   },
   {
+    id: 'LOG_2023_03',
+    date: '2023.03.01',
+    year: 2023,
+    category: 'MILESTONE',
+    title: 'Identification of 26 Core Genes',
+    summary: 'Identified 26 genes that consistently appear with top scores across all diagnostic signature sizes.',
+    details: [
+      "Tested 4.5 trillion candidate lung cancer signatures across 26 different signature sizes.",
+      "Identified 143 probes present in more than 20 signature sizes.",
+      "Refined these findings to 28 probesets mapping to 26 unique genes.",
+      "These 26 genes show consistent high predictive value regardless of signature complexity."
+    ],
+    pdf: '/history_assets/UPDATE-2023-MAR.pdf'
+  },
+  {
     id: 'LOG_2023_09',
     date: '2023.09.25',
     year: 2023,
@@ -323,6 +338,21 @@ export const projectHistoryKo: HistoryLog[] = [
       "육종 분석은 예측 능력에 영향을 미치는 다양한 구성 성분에 집중할 것임을 확정."
     ],
     pdf: '/history_assets/UPDATE-2021-NOV.pdf'
+  },
+  {
+    id: 'LOG_2023_03',
+    date: '2023.03.01',
+    year: 2023,
+    category: 'MILESTONE',
+    title: '26개 핵심 유전자 규명',
+    summary: '모든 진단 서명 크기에서 일관되게 최고 점수를 기록하는 26개의 유전자를 식별.',
+    details: [
+      "4.5조 개의 폐암 후보 서명을 26가지 크기로 분류하여 정밀 테스트 수행.",
+      "20개 이상의 서명 크기에서 공통적으로 발견되는 143개 프로브(Probes) 식별.",
+      "이를 26개 유전자에 매핑되는 28개 프로브세트(Probesets)로 최종 압축.",
+      "이 유전자들은 서명의 복잡도와 무관하게 일관된 예측 능력을 입증함."
+    ],
+    pdf: '/history_assets/UPDATE-2023-MAR.pdf'
   },
   {
     id: 'LOG_2023_09',

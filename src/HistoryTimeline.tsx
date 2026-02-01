@@ -59,7 +59,7 @@ export const LogDetailModal = ({ log, onClose }: { log: HistoryLog, onClose: () 
         {/* Footer / Actions */}
         <div className="p-6 border-t border-border-main bg-card-hover flex justify-end gap-4">
            <a 
-             href={log.pdf} 
+             href={log.pdf.startsWith('http') ? log.pdf : `${import.meta.env.BASE_URL}${log.pdf.replace(/^\//, '')}`} 
              target="_blank" 
              rel="noreferrer"
              className="flex items-center gap-2 px-4 py-2 bg-card border border-border-main hover:bg-accent hover:text-accent-contrast hover:border-accent text-main text-xs font-bold uppercase tracking-wider transition-all"
@@ -67,7 +67,7 @@ export const LogDetailModal = ({ log, onClose }: { log: HistoryLog, onClose: () 
              <ExternalLink size={16} /> Open PDF
            </a>
            <a 
-             href={log.pdf} 
+             href={log.pdf.startsWith('http') ? log.pdf : `${import.meta.env.BASE_URL}${log.pdf.replace(/^\//, '')}`} 
              download
              className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-contrast border border-accent hover:brightness-110 text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-accent/20"
            >
