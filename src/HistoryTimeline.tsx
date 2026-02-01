@@ -86,16 +86,24 @@ export const HistoryTimeline = ({ lang, onLogSelect }: TimelineProps) => {
     <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 relative z-10 pt-10 pb-20">
       <div className="text-center border-b border-border-main pb-12">
         <h2 className="text-4xl md:text-6xl font-black text-main mb-4 tracking-tighter">PROJECT HISTORY</h2>
-        <p className="text-accent font-bold tracking-widest uppercase flex items-center justify-center gap-2">
-          <Terminal size={16} />
-          System Evolution History (2013-2021)
-        </p>
       </div>
 
-      <div className="relative border-l-2 border-border-main ml-4 md:ml-12 space-y-12">
-        {historyData.map((log) => (
-          <div key={log.id} className="relative pl-8 md:pl-12 group">
-            {/* Timeline Node */}
+      <div className="relative border-l-2 border-border-main ml-4 md:ml-24 space-y-12">
+        {historyData.map((log, index) => {
+          const showYear = index === 0 || log.year !== historyData[index - 1].year;
+          
+          return (
+            <div key={log.id} className="relative pl-8 md:pl-12 group">
+              {/* Year Label (Desktop) */}
+              {showYear && (
+                <div className="absolute -left-20 top-[-4px] hidden md:block text-right">
+                  <span className="text-sm font-mono font-black text-border-main group-hover:text-accent transition-colors duration-300">
+                    {log.year}
+                  </span>
+                </div>
+              )}
+
+              {/* Timeline Node */}
             <div className="absolute -left-[9px] top-0 bg-page border-2 border-border-main text-sub w-4 h-4 rounded-full group-hover:border-accent group-hover:scale-125 transition-all duration-300 z-10"></div>
             
             {/* Content Card */}
@@ -131,7 +139,8 @@ export const HistoryTimeline = ({ lang, onLogSelect }: TimelineProps) => {
                </div>
             </div>
           </div>
-        ))}
+        );
+      })}
       </div>
     </div>
   );
