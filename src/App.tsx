@@ -1,361 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Dna, FileText, 
-  Microscope, ArrowRight, Database, Users, X, Cpu, Clock, Zap, Sun, Moon, Sparkles, Menu 
-} from 'lucide-react';
+import { Dna, Menu, X, Sun, Moon, Search } from 'lucide-react';
 import { 
   projectInfo, geneAnalysis, glossary,
   projectInfoEn, lungDataEn, ovarianDataEn, sarcomaDataEn, glossaryEn
 } from './data/index';
 import articlesDataKo from './data.json';
 import articlesDataEn from './dataEn.json';
-import { serverStats as initialStats } from './serverData';
-import { GridBackground, CountUp, StatusIndicator, GenePattern, ProteinViewer, ServerActivityChart, ThemeMode, DeepDiveReport } from './Visuals';
+import { GridBackground, ThemeMode, DeepDiveReport } from './Visuals';
 import { HistoryTimeline, LogDetailModal } from './HistoryTimeline';
 import { HistoryLog, projectHistoryKo, projectHistoryEn } from './data/projectHistory';
+
+// Components
+import { GeneModal } from './components/domain/GeneModal';
+import { Dashboard } from './pages/Dashboard';
+import { StatisticsPage } from './pages/StatisticsPage';
+import { AnalysisPage } from './pages/AnalysisPage';
+import { WikiPage } from './pages/WikiPage';
+import { ArchiveList } from './pages/ArchiveList';
+import { SearchOverlay } from './components/ui/SearchOverlay';
 
 // --- Data Helper ---
 const geneAnalysisEn = {
   lung: lungDataEn,
   ovarian: ovarianDataEn,
   sarcoma: sarcomaDataEn
-};
-
-// --- Components ---
-
-const StatCard = ({ label, value, sub, icon: Icon, isLive = false }: any) => (
-  <div className={`bg-card p-6 border-l-4 ${isLive ? 'border-accent bg-card-hover' : 'border-border-main'} hover:border-accent transition-all duration-200 group relative overflow-hidden shadow-sm`}>
-    <div className="flex justify-between items-start mb-2">
-      <div className="flex items-center gap-2">
-        <p className={`text-xs font-bold uppercase tracking-widest ${isLive ? 'text-accent' : 'text-sub'}`}>{label}</p>
-        {isLive && <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span></span>}
-      </div>
-      <Icon size={20} className={`${isLive ? 'text-accent' : 'text-sub'} group-hover:text-accent transition-colors`} />
-    </div>
-    <h3 className="text-4xl font-black text-main mb-1 tracking-tight">
-      <CountUp value={value} />
-    </h3>
-    <p className="text-sm text-sub font-medium group-hover:text-accent transition-colors opacity-80">{sub}</p>
-  </div>
-);
-
-const GeneModal = ({ gene, onClose, theme, onDeepDive, articles }: { gene: any, onClose: () => void, theme: ThemeMode, onDeepDive: (gene: any) => void, articles: any[] }) => {
-  // Prevent background scrolling when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
-
-  if (!gene) return null;
-
-  const relatedArticle = articles.find((a: any) => {
-    if (gene.article_id) return Number(a.id) === Number(gene.article_id);
-    return (a.title && a.title.toLowerCase().includes(gene.name.toLowerCase())) || 
-           (a.summary && a.summary.toLowerCase().includes(gene.name.toLowerCase()));
-  });
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-4 animate-in fade-in duration-200">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
-      
-      {/* Modal Container: Fullscreen on Mobile, Centered Card on Desktop */}
-      <div className="bg-card border-t md:border border-border-main w-full md:max-w-3xl h-[95dvh] md:h-auto md:max-h-[90vh] overflow-hidden relative z-10 shadow-2xl flex flex-col rounded-t-2xl md:rounded-xl">
-        
-        {/* Close Button (Floating) */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 bg-black/50 hover:bg-accent hover:text-accent-contrast text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg"
-        >
-          <X size={24} />
-        </button>
-
-        {/* Scrollable Content Wrapper */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          
-          {/* Tactical 3D Scan Area */}
-          <div className="relative h-[40dvh] md:h-96 w-full bg-page overflow-hidden border-b border-accent group shrink-0">
-             {gene.uniprot_id ? (
-               <ProteinViewer uniprotId={gene.uniprot_id} fallbackSeed={gene.name} theme={theme} />
-             ) : (relatedArticle && (relatedArticle as any).image) ? (
-               <>
-                 <img 
-                   src={(relatedArticle as any).image} 
-                   alt="Subject Scan" 
-                   className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale contrast-125 brightness-75" 
-                 />
-                 <div className="absolute inset-0 bg-accent mix-blend-overlay opacity-20"></div>
-               </>
-             ) : (
-               <GenePattern seed={gene.name} className="opacity-30" theme={theme} />
-             )}
-             
-             <div className="absolute inset-0 p-6 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-transparent to-transparent">
-               <div>
-                 <span className="text-[10px] font-bold text-accent uppercase tracking-widest border border-accent px-2 py-1 bg-black/80 backdrop-blur-sm shadow-sm mb-2 inline-block">
-                   Target ID: {gene.name}
-                 </span>
-                 <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-xl filter block">
-                   {gene.name}
-                 </h2>
-                 <div className="flex items-center gap-2 mt-2">
-                   <p className="text-accent font-mono text-xs md:text-sm font-bold tracking-wider uppercase bg-black/50 px-2 py-0.5 backdrop-blur-md border border-accent/20">
-                     // {gene.full_name}
-                   </p>
-                   {gene.uniprot_id && <span className="text-[10px] bg-accent text-accent-contrast px-2 py-0.5 rounded font-bold shadow-sm">3D MODEL</span>}
-                 </div>
-               </div>
-             </div>
-          </div>
-
-          <div className="p-6 md:p-10 space-y-8 bg-card">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-accent flex items-center border-b border-border-main pb-2 uppercase tracking-wide">
-                <Microscope size={20} className="mr-2" />
-                Analysis Result
-              </h3>
-              <p className="text-main leading-loose text-lg md:text-xl font-light">
-                {gene.insight}
-              </p>
-            </div>
-
-            {/* Deep Insight Action */}
-            {gene.deepDive && (
-              <button 
-                onClick={() => onDeepDive(gene)}
-                className="w-full bg-accent text-accent-contrast p-5 md:p-6 flex items-center justify-between group hover:scale-[1.02] transition-all shadow-xl active:scale-95 rounded-sm"
-              >
-                <div className="flex items-center gap-4">
-                   <div className="bg-accent-contrast/10 p-2 hidden md:block">
-                     <Sparkles size={24} />
-                   </div>
-                   <div className="text-left">
-                     <p className="text-xs font-black uppercase tracking-widest opacity-80">Intelligence Access</p>
-                     <p className="text-lg md:text-2xl font-black uppercase">Launch Deep Insight Report</p>
-                   </div>
-                </div>
-                <ArrowRight size={28} className="group-hover:translate-x-2 transition-transform" />
-              </button>
-            )}
-
-            {relatedArticle && (
-              <div className="bg-card-hover p-6 border border-border-main hover:border-accent transition-colors">
-                 <h4 className="text-xs font-bold text-sub uppercase tracking-widest mb-4 flex items-center">
-                   <Database size={12} className="mr-2" /> Source Data
-                 </h4>
-                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                    <div>
-                      <p className="text-main font-bold leading-tight text-lg">{relatedArticle.title}</p>
-                      <p className="text-sub text-xs mt-1 font-mono">{relatedArticle.date}</p>
-                    </div>
-                    <a href={relatedArticle.link} target="_blank" rel="noreferrer" className="text-center md:text-left bg-card border border-border-main hover:bg-accent hover:text-accent-contrast text-main px-6 py-3 text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap">
-                      Read Article
-                    </a>
-                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const GeneCard = ({ gene, onClick, theme }: any) => (
-  <div 
-    onClick={() => onClick(gene)}
-    className="bg-card border border-border-main hover:border-accent hover:bg-card-hover transition-all duration-200 cursor-pointer group h-full flex flex-col relative overflow-hidden shadow-sm hover:shadow-md"
-  >
-    <div className="h-1.5 w-full opacity-50 group-hover:opacity-100 transition-opacity">
-       <GenePattern seed={gene.name} theme={theme} />
-    </div>
-    <div className="p-5 flex flex-col h-full justify-between">
-      <div className="mb-4">
-        <div className="flex justify-between items-start mb-3">
-          <span className="text-[10px] font-bold text-sub border border-border-main px-2 py-1 uppercase tracking-wider group-hover:text-accent group-hover:border-accent transition-colors">
-            {gene.role}
-          </span>
-          <ArrowRight size={16} className="text-sub group-hover:text-accent -translate-x-2 group-hover:translate-x-0 transition-all" />
-        </div>
-        <h4 className="text-2xl font-black text-main mb-1 group-hover:text-accent transition-colors">
-          {gene.name}
-        </h4>
-        <p className="text-xs text-sub font-bold uppercase tracking-wide truncate">{gene.full_name}</p>
-      </div>
-      <p className="text-sm text-sub line-clamp-2 leading-relaxed group-hover:text-main transition-colors">
-        {gene.insight}
-      </p>
-    </div>
-  </div>
-);
-
-const SectionHeader = ({ title, sub, icon: Icon }: any) => (
-  <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 border-b-2 border-border-main pb-4 gap-4">
-    <div className="flex items-center space-x-4">
-      <div className="bg-accent text-accent-contrast p-3">
-        <Icon size={24} strokeWidth={2.5} />
-      </div>
-      <div>
-        <h2 className="text-2xl md:text-3xl font-black text-main tracking-tight uppercase">{title}</h2>
-      </div>
-    </div>
-    {sub && <p className="text-sub font-bold text-sm uppercase tracking-wide text-left md:text-right ml-16 md:ml-0">{sub}</p>}
-  </div>
-);
-
-// --- Pages ---
-
-const Dashboard = ({ info, analysis }: { info: any, analysis: any }) => (
-  <div className="space-y-16 animate-in fade-in duration-500 relative z-10">
-    <div className="py-8 md:py-12 border-b border-border-main">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-6">
-        <div>
-          <StatusIndicator />
-          <h1 className="text-5xl md:text-8xl font-black text-main mt-6 mb-4 leading-none tracking-tighter">
-            {info.title}
-          </h1>
-          <p className="text-lg md:text-xl text-sub max-w-2xl font-light">
-            {info.description}
-          </p>
-        </div>
-        <div className="block md:block text-left md:text-right mt-4 md:mt-0">
-           <p className="text-5xl md:text-6xl font-black text-accent tabular-nums">11<span className="text-2xl text-sub">YRS</span></p>
-           <p className="text-sub text-sm font-bold uppercase tracking-widest mt-1">Research Duration</p>
-        </div>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <StatCard icon={Dna} {...info.stats[1]} />
-      <StatCard icon={Microscope} {...info.stats[2]} />
-      <StatCard icon={Cpu} {...info.stats[3]} />
-      <StatCard icon={FileText} label="Research Papers" value="16+" sub="Published Findings" />
-    </div>
-    {/* Key Research Highlights */}
-    <div className="pt-8">
-      <SectionHeader title="Target Sectors" sub="Active Research Areas" icon={Dna} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {Object.entries(analysis).map(([key, data]: any) => {
-          const status = key === 'lung' ? 'Analysis' : key === 'ovarian' ? 'Computation' : 'Paused';
-          const isActive = status !== 'Paused';
-          
-          return (
-            <div key={key} className={`group bg-card border ${isActive ? 'border-border-main hover:border-accent' : 'border-border-main/50 opacity-70'} p-8 transition-all duration-300 shadow-sm relative overflow-hidden flex flex-col min-h-[280px] md:min-h-[320px]`}>
-              {/* Visual Accent Bar */}
-              <div className={`absolute top-0 left-0 h-1.5 w-full ${isActive ? 'bg-accent' : 'bg-border-main'}`} />
-              
-              <div className="relative z-10 flex-1">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${isActive ? 'bg-accent/10 text-accent' : 'bg-sub/10 text-sub'}`}>
-                    Phase: {status}
-                  </span>
-                  {status === 'Computation' && <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span></span>}
-                </div>
-                
-                <h3 className={`text-2xl font-black mb-4 uppercase tracking-tighter whitespace-nowrap ${isActive ? 'text-main' : 'text-sub'}`}>
-                  {data.title}
-                </h3>
-                <p className="text-sub leading-loose font-light text-base">
-                  {data.description}
-                </p>
-              </div>
-
-              {/* Subtle background icon */}
-              <div className="absolute -bottom-6 -right-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                <Dna size={120} strokeWidth={1} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-);
-
-const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
-  const [stats, setStats] = useState<any>(initialStats);
-
-  useEffect(() => {
-    // Dynamic fetch to get the absolute latest data from JSON
-    fetch('/src/server_stats.json')
-      .then(res => res.json())
-      .then(data => {
-        // Explicit sort by date (newest first)
-        const sortedHistory = data.history.sort((a: any, b: any) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-        setStats({ ...data, history: sortedHistory });
-      })
-      .catch(() => {
-        // Fallback to imported data if fetch fails
-        const sortedInitial = [...initialStats.history].sort((a: any, b: any) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-        setStats({ ...initialStats, history: sortedInitial });
-      });
-  }, []);
-
-  const formatRuntime = (raw: string) => {
-    if (!raw) return "";
-    const parts = raw.split(':');
-    if (parts.length !== 5) return raw; // Fallback if format doesn't match
-    // y, d, h, m, s
-    const units = ['y', 'd', 'h', 'm', 's'];
-    return parts.map((part, i) => `${parseInt(part)}${units[i]}`).join(' ');
-  };
-
-  return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10 pt-4">
-      <div className="border-b border-border-main pb-8 mb-8">
-        <h2 className="text-3xl md:text-4xl font-black text-main uppercase tracking-tighter mb-2">Live Grid Status</h2>
-        <p className="text-sub font-mono text-sm">Real-time data synchronization with World Community Grid</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Today's Run Time" value={formatRuntime(stats.runtime)} sub="Global Contribution" icon={Clock} isLive={true} />
-        <StatCard label="Points Generated" value={stats.points} sub="Computed Data" icon={Zap} isLive={true} />
-        <StatCard label="Results Returned" value={stats.results} sub="Packets Processed" icon={Database} isLive={true} />
-        <StatCard label="Active Volunteers" value="82,400+" sub="Global Grid Nodes" icon={Users} isLive={true} />
-      </div>
-      <div className="mb-8 bg-card border border-border-main p-4 md:p-6 relative overflow-hidden group">
-        <div className="flex justify-between items-end mb-6">
-          <div><h3 className="text-lg md:text-xl font-black text-main uppercase tracking-tight">Computation Output</h3><p className="text-sub text-xs font-bold uppercase tracking-widest mt-1">Daily Results Returned (Last 14 Days)</p></div>
-          <div className="flex items-center gap-2"><span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span><span className="text-accent text-xs font-bold">LIVE DATA</span></div>
-        </div>
-        <ServerActivityChart data={[...stats.history].reverse()} theme={theme} />
-      </div>
-      <div className="bg-card border border-border-main overflow-hidden">
-        <div className="p-4 border-b border-border-main bg-card-hover flex justify-between items-center"><h3 className="text-sm font-black text-main uppercase tracking-widest">Access Logs // Project History</h3></div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-mono text-xs">
-            <thead><tr className="bg-card-hover text-sub border-b border-border-main"><th className="p-3 font-bold uppercase">Date</th><th className="p-3 font-bold uppercase text-right">Points</th><th className="p-3 font-bold uppercase text-right">Results</th></tr></thead>
-            <tbody className="divide-y divide-border-main">
-              {stats.history.map((log: any, i: number) => (
-                <tr key={i} className="hover:bg-accent/5 transition-colors group">
-                  <td className="p-3 text-main group-hover:text-accent">{log.date}</td>
-                  <td className="p-3 text-right text-main font-bold">{log.points.toLocaleString()}</td>
-                  <td className="p-3 text-right text-accent font-bold">{log.results.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AnalysisPage = ({ theme, onGeneClick, analysis }: { theme: ThemeMode, onGeneClick: (gene: any) => void, analysis: any }) => {
-  return (
-    <div className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10 pt-10">
-      <div className="border-l-4 border-accent pl-4 md:pl-8"><h2 className="text-4xl md:text-6xl font-black mb-4 text-main uppercase tracking-tighter">Analysis Lab</h2><p className="text-sub max-w-2xl text-lg md:text-2xl font-light">Decoded genetic sequences from distributed computing grid.</p></div>
-      {Object.entries(analysis).map(([key, data]: any) => (
-        <div key={key} className="scroll-mt-20">
-          <div className="flex items-center gap-4 mb-8"><span className="text-accent font-black text-2xl">0{key === 'lung' ? 1 : key === 'ovarian' ? 2 : 3}</span><h3 className="text-3xl md:text-4xl font-black text-main uppercase">{data.title}</h3></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{data.genes.map((gene: any) => (<GeneCard key={gene.name} gene={gene} onClick={onGeneClick} theme={theme} />))}</div>
-        </div>
-      ))}
-    </div>
-  );
 };
 
 // --- Main App ---
@@ -368,6 +36,7 @@ function App() {
   const [selectedGene, setSelectedGene] = useState<any>(null); // Managed globally for UI overlay
   const [selectedLog, setSelectedLog] = useState<HistoryLog | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Data Selection based on Language
   const currentProjectInfo = lang === 'ko' ? projectInfo : projectInfoEn;
@@ -456,6 +125,17 @@ function App() {
     updateHash('analysis', 'gene', gene.name, 'deep-dive');
   };
 
+  const handleSearchNavigate = (type: 'gene' | 'article' | 'log', data: any) => {
+    if (type === 'gene') {
+      handleGeneSelect(data);
+    } else if (type === 'log') {
+      handleLogSelect(data);
+    } else if (type === 'article') {
+      window.open(data.link, '_blank');
+    }
+    setIsSearchOpen(false);
+  };
+
   // When exiting deep dive via UI button, we want to go back to gene modal
   const handleExitDeepDive = () => {
     if (deepDiveGene) {
@@ -491,6 +171,17 @@ function App() {
     <div className={`min-h-screen bg-page text-main flex flex-col font-sans relative selection:bg-accent selection:text-accent-contrast transition-colors duration-300 ${theme === 'clinical' ? 'theme-clinical' : ''}`}>
       <GridBackground theme={theme} />
       
+      <SearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)}
+        onNavigate={handleSearchNavigate}
+        data={{
+          genes: currentGeneAnalysis,
+          articles: currentArticles,
+          history: currentHistoryLogs
+        }}
+      />
+
       {/* Gene Modal - High Z-index to cover everything including nav */}
       {selectedGene && (
         <GeneModal 
@@ -533,6 +224,9 @@ function App() {
                 ))}
               </div>
               <div className="flex gap-2">
+                <button onClick={() => setIsSearchOpen(true)} className="p-2 text-sub hover:text-accent transition-colors bg-card border border-border-main rounded-md">
+                   <Search size={20} />
+                </button>
                 <button 
                   onClick={() => setLang(l => l === 'ko' ? 'en' : 'ko')} 
                   className="p-2 text-xs font-black text-sub hover:text-accent transition-colors bg-card border border-border-main rounded-md flex items-center gap-1 uppercase w-16 justify-center"
@@ -544,9 +238,14 @@ function App() {
             </div>
 
             {/* Mobile Hamburger */}
-            <button className="md:hidden p-2 text-main" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <div className="md:hidden flex items-center gap-2">
+              <button onClick={() => setIsSearchOpen(true)} className="p-2 text-main">
+                <Search size={24} />
+              </button>
+              <button className="p-2 text-main" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -589,20 +288,5 @@ function App() {
     </div>
   );
 }
-
-// Helper components moved for brevity but should be defined
-const WikiPage = ({ glossary }: { glossary: any[] }) => (
-  <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 relative z-10 pt-10">
-    <div className="text-center border-b border-border-main pb-12"><h2 className="text-4xl md:text-6xl font-black text-main mb-4 tracking-tighter">WIKI</h2><p className="text-accent font-bold tracking-widest uppercase">Terminology Database</p></div>
-    <div className="grid gap-6">{glossary.map((item, idx) => (<div key={idx} className="bg-card p-6 md:p-8 border border-border-main hover:border-accent transition-all group"><h3 className="text-xl md:text-2xl font-black text-main mb-4 group-hover:text-accent transition-colors">{item.term}</h3><p className="text-sub leading-relaxed text-base md:text-lg">{item.def}</p></div>))}</div>
-  </div>
-);
-
-const ArchiveList = ({ articles }: { articles: any[] }) => (
-  <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 relative z-10 pt-10">
-    <div className="flex justify-between items-end mb-12 border-b-4 border-main pb-4"><h2 className="text-4xl md:text-6xl font-black text-main tracking-tighter">ARCHIVE</h2><span className="text-lg md:text-xl font-bold text-accent">{articles.length} ITEMS</span></div>
-    <div className="grid gap-4">{articles.map((article: any) => (<a key={article.id} href={article.link} target="_blank" rel="noreferrer" className="flex flex-col md:flex-row items-start md:items-center justify-between bg-card p-6 border border-border-main hover:bg-accent hover:text-accent-contrast transition-all group"><div className="flex-1"><div className="flex items-center gap-3 mb-2"><span className="text-xs font-bold uppercase tracking-wider border border-border-main px-2 py-0.5 group-hover:border-black/20">{article.category}</span><span className="text-sub text-xs font-bold group-hover:text-accent-contrast/60">{article.date}</span></div><h3 className="text-lg md:text-xl font-bold text-main group-hover:text-accent-contrast transition-colors">{article.title}</h3></div><ArrowRight size={24} className="text-sub mt-4 md:mt-0 group-hover:text-accent-contrast transition-colors" /></a>))}</div>
-  </div>
-);
 
 export default App;

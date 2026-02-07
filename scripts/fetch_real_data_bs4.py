@@ -81,12 +81,16 @@ try:
         "history": history
     }
     
-    # 7-1. JSON 저장 (src/server_stats.json)
-    json_path = 'mcm-research-archive/src/server_stats.json'
-    if not os.path.exists('mcm-research-archive'): json_path = 'src/server_stats.json'
-    with open(json_path, 'w', encoding='utf-8') as f:
+    # 7-1. JSON 저장 (src/server_stats.json & public/server_stats.json)
+    # Build용
+    with open('src/server_stats.json', 'w', encoding='utf-8') as f:
         json.dump(stats_data, f, indent=2)
-    print(f"Data saved to {json_path}")
+    
+    # Runtime Fetch용
+    with open('public/server_stats.json', 'w', encoding='utf-8') as f:
+        json.dump(stats_data, f, indent=2)
+        
+    print(f"Data saved to src/server_stats.json & public/server_stats.json")
 
     # 7-2. TS 저장 (serverData.ts - 하위 호환용)
     ts_content = f"""export const serverStats = {{
@@ -96,11 +100,9 @@ try:
   "history": {json.dumps(history, indent=4)}
 }};
 """
-    ts_path = 'mcm-research-archive/src/serverData.ts'
-    if not os.path.exists('mcm-research-archive'): ts_path = 'src/serverData.ts'
-    with open(ts_path, 'w', encoding='utf-8') as f:
+    with open('src/serverData.ts', 'w', encoding='utf-8') as f:
         f.write(ts_content)
-    print(f"Data saved to {ts_path}")
+    print(f"Data saved to src/serverData.ts")
 
 except Exception as e:
     print(f"오류 발생: {e}")

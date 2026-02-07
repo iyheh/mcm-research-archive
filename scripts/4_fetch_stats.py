@@ -86,7 +86,12 @@ else:
         })
     stats["history"].reverse()
 
-with open('mcm-research-archive/src/server_stats.json', 'w', encoding='utf-8') as f:
+# Write to src (for build/dev)
+with open('src/server_stats.json', 'w', encoding='utf-8') as f:
+    json.dump(stats, f, indent=2)
+
+# Write to public (for runtime fetch)
+with open('public/server_stats.json', 'w', encoding='utf-8') as f:
     json.dump(stats, f, indent=2)
 
 print(f"Success! Latest Points: {stats['points']}")
