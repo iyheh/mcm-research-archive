@@ -1,4 +1,4 @@
-import { Dna, Microscope, Cpu, FileText } from 'lucide-react';
+import { Dna, Microscope, Cpu } from 'lucide-react';
 import { StatusIndicator } from '../Visuals';
 import { StatCard } from '../components/ui/StatCard';
 import { SectionHeader } from '../components/ui/SectionHeader';
@@ -22,11 +22,10 @@ export const Dashboard = ({ info, analysis }: { info: any, analysis: any }) => (
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <StatCard icon={Dna} {...info.stats[1]} />
       <StatCard icon={Microscope} {...info.stats[2]} />
       <StatCard icon={Cpu} {...info.stats[3]} />
-      <StatCard icon={FileText} label="Research Papers" value="16+" sub="Published Findings" />
     </div>
     {/* Key Research Highlights */}
     <div className="pt-8">
