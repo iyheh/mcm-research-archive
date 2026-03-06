@@ -94,4 +94,15 @@ with open('src/server_stats.json', 'w', encoding='utf-8') as f:
 with open('public/server_stats.json', 'w', encoding='utf-8') as f:
     json.dump(stats, f, indent=2)
 
+# Write to TS (serverData.ts - fallback)
+ts_content = f"""export const serverStats = {{
+  "runtime": "{stats['runtime']}",
+  "points": "{stats['points']}",
+  "results": "{stats['results']}",
+  "history": {json.dumps(stats['history'], indent=4)}
+}};
+"""
+with open('src/serverData.ts', 'w', encoding='utf-8') as f:
+    f.write(ts_content)
+
 print(f"Success! Latest Points: {stats['points']}")

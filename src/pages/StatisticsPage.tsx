@@ -5,7 +5,18 @@ import { ServerActivityChart, ThemeMode } from '../Visuals';
 import { serverStats as initialStats } from '../serverData';
 
 export const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
-  const [stats, setStats] = useState<any>(initialStats);
+  const [stats, setStats] = useState<any>(() => {
+    // Priority 1: Check localStorage for previously successful fetch
+    const cached = localStorage.getItem('mcm_server_stats');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {
+        return initialStats;
+      }
+    }
+    return initialStats;
+  });
 
   useEffect(() => {
     // Dynamic fetch to get the absolute latest data from JSON
@@ -16,14 +27,20 @@ export const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
         const sortedHistory = data.history.sort((a: any, b: any) => {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
-        setStats({ ...data, history: sortedHistory });
+        const finalData = { ...data, history: sortedHistory };
+        setStats(finalData);
+        // Update cache for future use
+        localStorage.setItem('mcm_server_stats', JSON.stringify(finalData));
       })
       .catch(() => {
-        // Fallback to imported data if fetch fails
-        const sortedInitial = [...initialStats.history].sort((a: any, b: any) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        // Fallback handled by state initialization if fetch fails,
+        // but we can force a sort on the current state just in case
+        setStats((prev: any) => {
+          const sorted = [...prev.history].sort((a: any, b: any) => {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          });
+          return { ...prev, history: sorted };
         });
-        setStats({ ...initialStats, history: sortedInitial });
       });
   }, []);
 
