@@ -34,7 +34,7 @@ try:
         # 디버깅용 HTML 저장
         with open('bs4_debug.html', 'w', encoding='utf-8') as f:
             f.write(response.text)
-        exit()
+        exit(1)
 
     # 6. 데이터 추출
     history = []
@@ -68,7 +68,7 @@ try:
 
     if not history:
         print("No valid data rows found.")
-        exit()
+        exit(1)
 
     print(f"Successfully extracted {len(history)} records.")
 
@@ -106,3 +106,4 @@ try:
 
 except Exception as e:
     print(f"오류 발생: {e}")
+    exit(1)
