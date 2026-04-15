@@ -1,22 +1,22 @@
-import { useEffect } from 'react';
 import { X, Microscope, Sparkles, ArrowRight, Database } from 'lucide-react';
 import { ProteinViewer, GenePattern, ThemeMode } from '../../Visuals';
+import type { Article, Gene } from '../../types/content';
 
-export const GeneModal = ({ gene, onClose, theme, onDeepDive, articles }: { gene: any, onClose: () => void, theme: ThemeMode, onDeepDive: (gene: any) => void, articles: any[] }) => {
-  // Prevent background scrolling when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
+interface GeneModalProps {
+  gene: Gene;
+  onClose: () => void;
+  theme: ThemeMode;
+  onDeepDive: (gene: Gene) => void;
+  articles: Article[];
+}
 
+export const GeneModal = ({ gene, onClose, theme, onDeepDive, articles }: GeneModalProps) => {
   if (!gene) return null;
 
-  const relatedArticle = articles.find((a: any) => {
-    if (gene.article_id) return Number(a.id) === Number(gene.article_id);
-    return (a.title && a.title.toLowerCase().includes(gene.name.toLowerCase())) || 
-           (a.summary && a.summary.toLowerCase().includes(gene.name.toLowerCase()));
+  const relatedArticle = articles.find((article) => {
+    if (gene.article_id) return Number(article.id) === Number(gene.article_id);
+    return article.title.toLowerCase().includes(gene.name.toLowerCase()) || 
+           article.summary.toLowerCase().includes(gene.name.toLowerCase());
   });
 
   return (
@@ -41,15 +41,6 @@ export const GeneModal = ({ gene, onClose, theme, onDeepDive, articles }: { gene
           <div className="relative h-[40dvh] md:h-96 w-full bg-page overflow-hidden border-b border-accent group shrink-0">
              {gene.uniprot_id ? (
                <ProteinViewer uniprotId={gene.uniprot_id} fallbackSeed={gene.name} theme={theme} />
-             ) : (relatedArticle && (relatedArticle as any).image) ? (
-               <>
-                 <img 
-                   src={(relatedArticle as any).image} 
-                   alt="Subject Scan" 
-                   className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale contrast-125 brightness-75" 
-                 />
-                 <div className="absolute inset-0 bg-accent mix-blend-overlay opacity-20"></div>
-               </>
              ) : (
                <GenePattern seed={gene.name} className="opacity-30" theme={theme} />
              )}

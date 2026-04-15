@@ -1,4 +1,111 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { DeepDiveSection, Gene, ServerHistoryEntry } from './types/content';
+
+interface ViewerStyle {
+  cartoon: {
+    color: string;
+    opacity: number;
+    thickness: number;
+  };
+  stick: {
+    color: string;
+    radius: number;
+    opacity: number;
+  };
+}
+
+interface ThreeDMolViewer {
+  addModel: (data: string, format: string) => void;
+  clear: () => void;
+  render: () => void;
+  resize: () => void;
+  setBackgroundColor: (color: string) => void;
+  setStyle: (_selection: Record<string, never>, style: ViewerStyle) => void;
+  spin: (axis: 'x' | 'y' | 'z', speed: number) => void;
+  zoomTo: () => void;
+}
+
+interface ThreeDMolNamespace {
+  createViewer: (element: HTMLDivElement, options: { backgroundColor: string }) => ThreeDMolViewer;
+}
+
+declare global {
+  interface Window {
+    $3Dmol?: ThreeDMolNamespace;
+  }
+}
+
+let threeDMolPromise: Promise<ThreeDMolNamespace> | null = null;
+const proteinStructureCache = new Map<string, string>();
+
+const ensureThreeDMol = () => {
+  if (window.$3Dmol) {
+    return Promise.resolve(window.$3Dmol);
+  }
+
+  if (!threeDMolPromise) {
+    threeDMolPromise = new Promise<ThreeDMolNamespace>((resolve, reject) => {
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-3dmol-loader="true"]');
+
+      const handleLoad = () => {
+        if (window.$3Dmol) {
+          resolve(window.$3Dmol);
+          return;
+        }
+        reject(new Error('3Dmol script loaded without exposing window.$3Dmol'));
+      };
+
+      if (existingScript) {
+        existingScript.addEventListener('load', handleLoad, { once: true });
+        existingScript.addEventListener('error', () => reject(new Error('Failed to load 3Dmol script')), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://3Dmol.org/build/3Dmol-min.js';
+      script.async = true;
+      script.dataset['3dmolLoader'] = 'true';
+      script.addEventListener('load', handleLoad, { once: true });
+      script.addEventListener('error', () => reject(new Error('Failed to load 3Dmol script')), { once: true });
+      document.head.appendChild(script);
+    }).catch((error) => {
+      threeDMolPromise = null;
+      throw error;
+    });
+  }
+
+  return threeDMolPromise;
+};
+
+const waitForContainerSize = async (container: HTMLDivElement, signal: AbortSignal) => {
+  if (container.clientWidth > 0 && container.clientHeight > 0) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const checkSize = () => {
+      if (signal.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
+
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        resolve();
+        return;
+      }
+
+      requestAnimationFrame(checkSize);
+    };
+
+    checkSize();
+  });
+};
+
+const applyViewerStyle = (viewer: ThreeDMolViewer, backgroundColor: string, style: ViewerStyle) => {
+  viewer.setBackgroundColor(backgroundColor);
+  viewer.setStyle({}, style);
+  viewer.render();
+};
 
 // Theme Type Definition
 export type ThemeMode = 'tech' | 'clinical';
@@ -37,9 +144,12 @@ export const GridBackground = ({ theme }: ThemeProps) => {
 // --- 2. CountUp ---
 export const CountUp = ({ value, duration = 1500 }: { value: string, duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const match = value.match(/([\d.]+)(.*)/);
-  const targetNumber = match ? parseFloat(match[1]) : 0;
+  const match = value.match(/(-?[\d,.]+(?:\.\d+)?)(.*)/);
+  const normalizedNumber = match ? match[1].replace(/,/g, '') : '0';
+  const targetNumber = Number.parseFloat(normalizedNumber);
   const suffix = match ? match[2] : value;
+  const fractionDigits = normalizedNumber.includes('.') ? normalizedNumber.split('.')[1].length : 0;
+  const useGrouping = match ? match[1].includes(',') : false;
 
   useEffect(() => {
     let startTime: number;
@@ -56,10 +166,19 @@ export const CountUp = ({ value, duration = 1500 }: { value: string, duration?: 
     return () => cancelAnimationFrame(animationFrame);
   }, [targetNumber, duration]);
 
-  const isFloat = targetNumber % 1 !== 0;
+  const isFloat = normalizedNumber.includes('.');
+  const formattedValue = isFloat
+    ? displayValue.toLocaleString(undefined, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+      })
+    : useGrouping
+      ? Math.floor(displayValue).toLocaleString()
+      : String(Math.floor(displayValue));
+
   return (
     <span>
-      {isFloat ? displayValue.toFixed(1) : Math.floor(displayValue)}
+      {formattedValue}
       <span className="ml-1 opacity-80">{suffix}</span>
     </span>
   );
@@ -83,7 +202,7 @@ export const GenePattern = ({ seed, className, theme = 'tech' }: { seed: string,
   const baseColor = isTech ? '163, 230, 53' : '2, 132, 199'; // Neon Lime or Blue
   
   const generateBarcode = () => {
-    let gradients = [];
+    const gradients = [];
     // Random vertical bars
     for (let i = 0; i < 12; i++) {
       const pos = (hash * (i + 1.5)) % 100;
@@ -117,92 +236,115 @@ export const ProteinViewer = ({ uniprotId, fallbackSeed, theme }: { uniprotId: s
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const viewerRef = useRef<any>(null);
+  const viewerRef = useRef<ThreeDMolViewer | null>(null);
 
   const bgColor = theme === 'tech' ? '#09090b' : '#f8fafc';
   const cartoonColor = theme === 'tech' ? '#a3e635' : '#0284c7';
   const stickColor = theme === 'tech' ? '#ffffff' : '#1e293b';
+  const viewerStyle = useMemo<ViewerStyle>(
+    () => ({
+      cartoon: { color: cartoonColor, opacity: 0.9, thickness: 0.5 },
+      stick: { color: stickColor, radius: 0.1, opacity: 0.3 },
+    }),
+    [cartoonColor, stickColor],
+  );
+  const latestViewerAppearanceRef = useRef<{ bgColor: string; viewerStyle: ViewerStyle }>({ bgColor, viewerStyle });
 
   // Handle Theme Changes
   useEffect(() => {
+    latestViewerAppearanceRef.current = { bgColor, viewerStyle };
     if (viewerRef.current) {
-      viewerRef.current.setBackgroundColor(bgColor);
-      viewerRef.current.setStyle({}, { 
-        cartoon: { color: cartoonColor, opacity: 0.9, thickness: 0.5 },
-        stick: { color: stickColor, radius: 0.1, opacity: 0.3 }
-      });
-      viewerRef.current.render();
+      applyViewerStyle(viewerRef.current, bgColor, viewerStyle);
     }
-  }, [theme, bgColor, cartoonColor, stickColor]);
+  }, [bgColor, viewerStyle]);
 
-  // Handle Resize and Initialization
   useEffect(() => {
-    let animationFrameId: number;
+    if (!uniprotId || !containerRef.current) {
+      setError(true);
+      setLoading(false);
+      return;
+    }
 
-    const initViewer = () => {
-      if (!uniprotId || !containerRef.current || !(window as any).$3Dmol) {
-        setError(true);
-        return;
+    const abortController = new AbortController();
+
+    const initializeViewer = async () => {
+      const threeDMol = await ensureThreeDMol();
+      if (!containerRef.current) return;
+
+      await waitForContainerSize(containerRef.current, abortController.signal);
+      if (abortController.signal.aborted || !containerRef.current) return;
+
+      if (!viewerRef.current) {
+        viewerRef.current = threeDMol.createViewer(containerRef.current, {
+          backgroundColor: latestViewerAppearanceRef.current.bgColor,
+        });
       }
 
-      const { clientWidth, clientHeight } = containerRef.current;
-      
-      // Critical: Only initialize if dimensions are valid
-      if (clientWidth > 0 && clientHeight > 0) {
-        if (!viewerRef.current) {
-          viewerRef.current = (window as any).$3Dmol.createViewer(containerRef.current, { backgroundColor: bgColor });
-        }
-        
-        setLoading(true);
-        setError(false);
+      setLoading(true);
+      setError(false);
+
+      let pdbData = proteinStructureCache.get(uniprotId);
+      if (!pdbData) {
         const pdbUrl = `https://alphafold.ebi.ac.uk/files/AF-${uniprotId}-F1-model_v6.pdb`;
-        
-        fetch(pdbUrl)
-          .then(r => r.ok ? r.text() : Promise.reject())
-          .then(data => {
-            if (!viewerRef.current) return;
-            viewerRef.current.clear();
-            viewerRef.current.addModel(data, "pdb");
-            viewerRef.current.setStyle({}, { 
-              cartoon: { color: cartoonColor, opacity: 0.9, thickness: 0.5 },
-              stick: { color: stickColor, radius: 0.1, opacity: 0.3 }
-            });
-            viewerRef.current.zoomTo();
-            viewerRef.current.render();
-            viewerRef.current.spin('y', 0.5);
-            setLoading(false);
-          })
-          .catch(() => {
-            setError(true);
-            setLoading(false);
-          });
-      } else {
-        // Retry next frame if size is still 0
-        animationFrameId = requestAnimationFrame(initViewer);
+        const response = await fetch(pdbUrl, { signal: abortController.signal });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch structure for ${uniprotId}`);
+        }
+        pdbData = await response.text();
+        proteinStructureCache.set(uniprotId, pdbData);
       }
+
+      if (abortController.signal.aborted || !viewerRef.current) return;
+
+      viewerRef.current.clear();
+      viewerRef.current.addModel(pdbData, 'pdb');
+      viewerRef.current.zoomTo();
+      viewerRef.current.spin('y', 0.5);
+      applyViewerStyle(
+        viewerRef.current,
+        latestViewerAppearanceRef.current.bgColor,
+        latestViewerAppearanceRef.current.viewerStyle,
+      );
+      setLoading(false);
     };
 
-    animationFrameId = requestAnimationFrame(initViewer);
+    initializeViewer().catch((reason) => {
+      if (reason instanceof DOMException && reason.name === 'AbortError') {
+        return;
+      }
+      setError(true);
+      setLoading(false);
+    });
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      abortController.abort();
+    };
+  }, [uniprotId]);
+
+  useEffect(() => {
+    if (!containerRef.current || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      if (viewerRef.current) {
+        viewerRef.current.resize();
+        viewerRef.current.render();
+      }
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return () => {
       if (viewerRef.current) {
         viewerRef.current.clear();
         viewerRef.current = null;
       }
     };
-  }, [uniprotId, bgColor, cartoonColor, stickColor]);
-
-  const handleResize = () => {
-    if (viewerRef.current && containerRef.current) {
-      viewerRef.current.resize();
-      viewerRef.current.render();
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (error) return <GenePattern seed={fallbackSeed} className="opacity-30" theme={theme} />;
@@ -217,7 +359,7 @@ export const ProteinViewer = ({ uniprotId, fallbackSeed, theme }: { uniprotId: s
 };
 
 // --- 6. ServerActivityChart ---
-export const ServerActivityChart = ({ data, theme }: { data: any[], theme: ThemeMode }) => {
+export const ServerActivityChart = ({ data, theme }: { data: ServerHistoryEntry[], theme: ThemeMode }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   if (!data || data.length === 0) return null;
@@ -226,11 +368,12 @@ export const ServerActivityChart = ({ data, theme }: { data: any[], theme: Theme
   const max = Math.max(...values);
   const min = Math.min(...values);
   const range = max - min || 1;
+  const pointDivisor = Math.max(values.length - 1, 1);
   const width = 1000;
   const height = 300;
   const paddingX = 40;
   const paddingY = 40;
-  const getX = (i: number) => (i / (values.length - 1)) * (width - paddingX * 2) + paddingX;
+  const getX = (i: number) => (i / pointDivisor) * (width - paddingX * 2) + paddingX;
   const getY = (v: number) => (height - paddingY * 2) - ((v - min) / range) * (height - paddingY * 2) + paddingY;
   const points = values.map((v, i) => `${getX(i)},${getY(v)}`).join(' ');
   const areaPath = `${paddingX},${height - paddingY} ${points} ${width - paddingX},${height - paddingY}`;
@@ -259,7 +402,7 @@ export const ServerActivityChart = ({ data, theme }: { data: any[], theme: Theme
         )}
       </svg>
       {activeIndex !== null && (
-        <div className="absolute top-0 bg-card border border-accent p-3 rounded shadow-2xl z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full" style={{ left: `${(activeIndex / (values.length - 1)) * 100}%`, top: '10%' }}>
+        <div className="absolute top-0 bg-card border border-accent p-3 rounded shadow-2xl z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full" style={{ left: `${(activeIndex / pointDivisor) * 100}%`, top: '10%' }}>
            <p className="text-[10px] text-sub font-bold uppercase tracking-widest mb-1">{data[activeIndex].date}</p>
            <div className="flex items-end gap-2"><span className="text-xl font-black text-main">{data[activeIndex].results.toLocaleString()}</span><span className="text-xs text-accent font-bold mb-1">RES</span></div>
         </div>
@@ -304,11 +447,43 @@ const ImageWithFocus = ({ src, alt }: { src: string, alt: string }) => {
 };
 
 // --- 8. Deep Dive Report View ---
-export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: ThemeMode, onBack: () => void }) => {
-  const [activeSection] = useState(0);
+export const DeepDiveReport = ({ gene, theme, onBack }: { gene: Gene, theme: ThemeMode, onBack: () => void }) => {
+  const [activeSection, setActiveSection] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Array<HTMLElement | null>>([]);
+  const deepDive = gene.deepDive;
 
-  if (!gene.deepDive) return null;
+  useEffect(() => {
+    if (!scrollContainerRef.current || !deepDive || deepDive.sections.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const mostVisible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+
+        if (!mostVisible) return;
+
+        const index = Number((mostVisible.target as HTMLElement).dataset.sectionIndex ?? 0);
+        setActiveSection(index);
+      },
+      {
+        root: scrollContainerRef.current,
+        threshold: [0.2, 0.4, 0.6, 0.8],
+        rootMargin: '-20% 0px -30% 0px',
+      },
+    );
+
+    sectionRefs.current.forEach((section) => {
+      if (section) observer.observe(section);
+    });
+
+    return () => observer.disconnect();
+  }, [deepDive]);
+
+  if (!deepDive) return null;
 
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-700 bg-page min-h-screen relative overflow-hidden flex flex-col">
@@ -321,13 +496,13 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: Them
            </div>
            <span className="font-black uppercase tracking-tighter">Exit Lab Analysis</span>
         </button>
-        <div className="flex gap-4 items-center">
+         <div className="flex gap-4 items-center">
            <span className="text-[10px] font-bold text-sub uppercase tracking-widest border-r border-border-main pr-4">Subject: {gene.name}</span>
            <div className="flex gap-1">
-             {gene.deepDive.sections.map((_: any, i: number) => (
-               <div key={i} className={`h-1 w-8 transition-all duration-300 ${i === activeSection ? 'bg-accent w-12' : 'bg-border-main'}`}></div>
-             ))}
-           </div>
+             {deepDive.sections.map((_, i) => (
+                <div key={i} className={`h-1 w-8 transition-all duration-300 ${i === activeSection ? 'bg-accent w-12' : 'bg-border-main'}`}></div>
+              ))}
+            </div>
         </div>
       </div>
 
@@ -338,27 +513,38 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: Them
             <div className="space-y-4">
               <span className="bg-accent text-accent-contrast px-3 py-1 text-xs font-black uppercase tracking-widest">Deep Insight Report</span>
               <h1 className="text-6xl md:text-8xl font-black text-main tracking-tighter leading-none">
-                {gene.deepDive.story.title}
+                 {deepDive.story.title}
               </h1>
             </div>
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="p-8 bg-card border-l-8 border-accent shadow-2xl relative z-10">
                 <div className="absolute -top-4 -left-4 bg-accent text-accent-contrast p-2 text-xs font-bold">ANALOGY</div>
                 <p className="text-2xl font-light italic leading-relaxed text-main">
-                  "{gene.deepDive.story.analogy}"
-                </p>
-              </div>
-              <div className="h-64 rounded-xl overflow-visible relative group">
-                <ProteinViewer uniprotId={gene.uniprot_id} fallbackSeed={gene.name} theme={theme} />
-                <div className="absolute inset-0 bg-gradient-to-t from-page via-transparent to-transparent pointer-events-none"></div>
-              </div>
-            </div>
-          </section>
+                   "{deepDive.story.analogy}"
+                 </p>
+               </div>
+               <div className="h-64 rounded-xl overflow-visible relative group">
+                 {gene.uniprot_id ? (
+                   <ProteinViewer uniprotId={gene.uniprot_id} fallbackSeed={gene.name} theme={theme} />
+                 ) : (
+                   <GenePattern seed={gene.name} theme={theme} />
+                 )}
+                 <div className="absolute inset-0 bg-gradient-to-t from-page via-transparent to-transparent pointer-events-none"></div>
+               </div>
+             </div>
+           </section>
 
           {/* Detailed Sections */}
-          {gene.deepDive.sections.map((section: any, idx: number) => {
+          {deepDive.sections.map((section: DeepDiveSection, idx: number) => {
             return (
-              <section key={idx} className="pt-24 border-t border-border-main/30 grid lg:grid-cols-2 gap-20 items-stretch">
+              <section
+                key={idx}
+                ref={(element) => {
+                  sectionRefs.current[idx] = element;
+                }}
+                data-section-index={idx}
+                className="pt-24 border-t border-border-main/30 grid lg:grid-cols-2 gap-20 items-stretch"
+              >
                 <div className={`space-y-8 ${idx % 2 === 1 ? 'lg:order-last' : ''}`}>
                   <div className="flex items-center gap-4">
                      <div className="bg-accent/10 px-3 py-1 border border-accent/20">
@@ -377,7 +563,7 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: Them
                 <div className="flex flex-col">
                   {section.multiFigures ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                      {section.multiFigures.map((fig: any, fIdx: number) => (
+                      {section.multiFigures.map((fig, fIdx) => (
                         <div key={fIdx} className="space-y-4">
                           <div className="relative flex items-center justify-center">
                                <ImageWithFocus src={fig.url} alt={fig.label} />
@@ -415,8 +601,8 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: any, theme: Them
              <div className="absolute top-0 left-0 w-full h-2 bg-accent"></div>
              <h2 className="text-5xl font-black uppercase tracking-tighter">Research Conclusion</h2>
              <p className="text-3xl font-light max-w-3xl mx-auto leading-tight">
-               "{gene.deepDive.conclusion}"
-             </p>
+                "{deepDive.conclusion}"
+              </p>
              <button onClick={onBack} className="bg-accent text-accent-contrast px-8 py-4 font-black uppercase tracking-widest hover:scale-105 transition-transform">
                Return to Analysis Lab
              </button>

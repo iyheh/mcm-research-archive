@@ -1,8 +1,8 @@
-import { HistoryLog, projectHistoryEn, projectHistoryKo } from './data/projectHistory';
+import { HistoryLog } from './data/projectHistory';
 import { FileText, Calendar, ArrowRight, X, Terminal, Download, ExternalLink } from 'lucide-react';
 
 interface TimelineProps {
-  lang: 'ko' | 'en';
+  historyData: HistoryLog[];
   onLogSelect: (log: HistoryLog) => void;
 }
 
@@ -79,9 +79,7 @@ export const LogDetailModal = ({ log, onClose }: { log: HistoryLog, onClose: () 
   );
 };
 
-export const HistoryTimeline = ({ lang, onLogSelect }: TimelineProps) => {
-  const historyData = lang === 'ko' ? projectHistoryKo : projectHistoryEn;
-
+export const HistoryTimeline = ({ historyData, onLogSelect }: TimelineProps) => {
   return (
     <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 relative z-10 pt-10 pb-20">
       <div className="text-center border-b border-border-main pb-12">

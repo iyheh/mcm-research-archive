@@ -1,91 +1,91 @@
 export const serverStats = {
-  "runtime": "0:216:17:45:04",
-  "points": "1,621,316",
-  "results": "2,706",
+  "runtime": "0:006:21:37:36",
+  "points": "44,920",
+  "results": "74",
   "history": [
     {
-        "date": "03/08/2026",
-        "runtime_raw": "0:216:17:45:04",
-        "points": 1621316,
-        "results": 2706
+        "date": "2026-04-15",
+        "runtime_raw": "0:006:21:37:36",
+        "points": 44920,
+        "results": 74
     },
     {
-        "date": "03/07/2026",
-        "runtime_raw": "149:128:16:12:26",
-        "points": 405545884,
-        "results": 674054
+        "date": "2026-04-14",
+        "runtime_raw": "0:003:11:51:58",
+        "points": 41824,
+        "results": 72
     },
     {
-        "date": "03/06/2026",
-        "runtime_raw": "76:212:11:38:37",
-        "points": 208785144,
-        "results": 345256
+        "date": "2026-04-13",
+        "runtime_raw": "2:004:07:48:34",
+        "points": 6449538,
+        "results": 10940
     },
     {
-        "date": "03/05/2026",
-        "runtime_raw": "154:340:05:22:26",
-        "points": 419252512,
-        "results": 694440
+        "date": "2026-04-12",
+        "runtime_raw": "2:208:07:34:56",
+        "points": 15179774,
+        "results": 9490
     },
     {
-        "date": "03/04/2026",
-        "runtime_raw": "151:205:18:18:34",
-        "points": 412682916,
-        "results": 685794
+        "date": "2026-04-11",
+        "runtime_raw": "0:292:17:24:00",
+        "points": 2377526,
+        "results": 3834
     },
     {
-        "date": "03/03/2026",
-        "runtime_raw": "75:345:01:22:40",
-        "points": 204911431,
-        "results": 342346
+        "date": "2026-04-10",
+        "runtime_raw": "1:297:14:50:02",
+        "points": 4985372,
+        "results": 6922
     },
     {
-        "date": "03/02/2026",
-        "runtime_raw": "158:124:17:07:10",
-        "points": 425720202,
-        "results": 710580
+        "date": "2026-04-09",
+        "runtime_raw": "0:007:07:39:24",
+        "points": 112464,
+        "results": 168
     },
     {
-        "date": "03/01/2026",
-        "runtime_raw": "78:267:10:42:01",
-        "points": 212047888,
-        "results": 354352
+        "date": "2026-04-08",
+        "runtime_raw": "0:016:12:34:54",
+        "points": 194028,
+        "results": 378
     },
     {
-        "date": "02/28/2026",
-        "runtime_raw": "157:307:06:01:40",
-        "points": 423292702,
-        "results": 706466
+        "date": "2026-04-07",
+        "runtime_raw": "0:008:15:37:40",
+        "points": 85131,
+        "results": 219
     },
     {
-        "date": "02/27/2026",
-        "runtime_raw": "154:327:06:46:42",
-        "points": 417248410,
-        "results": 693652
+        "date": "2026-04-06",
+        "runtime_raw": "0:009:12:09:49",
+        "points": 101439,
+        "results": 233
     },
     {
-        "date": "02/26/2026",
-        "runtime_raw": "73:121:04:34:24",
-        "points": 195724065,
-        "results": 325977
+        "date": "2026-04-05",
+        "runtime_raw": "0:000:21:13:43",
+        "points": 6170,
+        "results": 26
     },
     {
-        "date": "02/25/2026",
-        "runtime_raw": "126:006:16:45:56",
-        "points": 337675994,
-        "results": 561542
+        "date": "2026-04-04",
+        "runtime_raw": "0:001:15:05:55",
+        "points": 15990,
+        "results": 52
     },
     {
-        "date": "02/24/2026",
-        "runtime_raw": "55:123:21:25:33",
-        "points": 150599347,
-        "results": 248702
+        "date": "2026-04-03",
+        "runtime_raw": "40:225:02:26:21",
+        "points": 110182242,
+        "results": 181505
     },
     {
-        "date": "02/23/2026",
-        "runtime_raw": "77:107:15:15:51",
-        "points": 212232882,
-        "results": 350627
+        "date": "2026-04-02",
+        "runtime_raw": "322:038:11:46:01",
+        "points": 855940868,
+        "results": 1405490
     }
 ]
 };

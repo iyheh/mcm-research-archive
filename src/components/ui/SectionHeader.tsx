@@ -1,4 +1,6 @@
-export const SectionHeader = ({ title, sub, icon: Icon }: any) => (
+import type { SectionHeaderProps } from '../../types/content';
+
+export const SectionHeader = ({ title, sub, icon: Icon }: SectionHeaderProps) => (
   <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 border-b-2 border-border-main pb-4 gap-4">
     <div className="flex items-center space-x-4">
       <div className="bg-accent text-accent-contrast p-3">

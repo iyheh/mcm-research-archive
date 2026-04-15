@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 import json
-import os
 
 # 1. URL 설정 (MCM 프로젝트, 14개 레코드)
 url = "https://www.worldcommunitygrid.org/stat/viewProjectsHistory.do?projectShortName=mcm1&numRecordsPerPage=14"
@@ -54,11 +54,12 @@ try:
             results_str = col_texts[3]
             
             try:
+                normalized_date = datetime.strptime(date_str, "%m/%d/%Y").strftime("%Y-%m-%d")
                 points = int(points_str.replace(',', ''))
                 results = int(results_str.replace(',', ''))
                 
                 history.append({
-                    "date": date_str,
+                    "date": normalized_date,
                     "runtime_raw": runtime,
                     "points": points,
                     "results": results

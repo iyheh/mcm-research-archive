@@ -1,7 +1,14 @@
 import { ArrowRight } from 'lucide-react';
 import { GenePattern, ThemeMode } from '../../Visuals';
+import type { Gene } from '../../types/content';
 
-export const GeneCard = ({ gene, onClick, theme }: { gene: any, onClick: (gene: any) => void, theme: ThemeMode }) => (
+interface GeneCardProps {
+  gene: Gene;
+  onClick: (gene: Gene) => void;
+  theme: ThemeMode;
+}
+
+export const GeneCard = ({ gene, onClick, theme }: GeneCardProps) => (
   <div 
     onClick={() => onClick(gene)}
     className="bg-card border border-border-main hover:border-accent hover:bg-card-hover transition-all duration-200 cursor-pointer group h-full flex flex-col relative overflow-hidden shadow-sm hover:shadow-md"

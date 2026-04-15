@@ -2,8 +2,14 @@ import { Dna, Microscope, Cpu } from 'lucide-react';
 import { StatusIndicator } from '../Visuals';
 import { StatCard } from '../components/ui/StatCard';
 import { SectionHeader } from '../components/ui/SectionHeader';
+import type { GeneAnalysisByCategory, ProjectInfo } from '../types/content';
 
-export const Dashboard = ({ info, analysis }: { info: any, analysis: any }) => (
+interface DashboardProps {
+  info: ProjectInfo;
+  analysis: GeneAnalysisByCategory;
+}
+
+export const Dashboard = ({ info, analysis }: DashboardProps) => (
   <div className="space-y-16 animate-in fade-in duration-500 relative z-10">
     <div className="py-8 md:py-12 border-b border-border-main">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-6">
@@ -31,7 +37,7 @@ export const Dashboard = ({ info, analysis }: { info: any, analysis: any }) => (
     <div className="pt-8">
       <SectionHeader title="Target Sectors" sub="Active Research Areas" icon={Dna} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {Object.entries(analysis).map(([key, data]: any) => {
+        {Object.entries(analysis).map(([key, data]) => {
           const status = key === 'lung' ? 'Analysis' : key === 'ovarian' ? 'Computation' : 'Paused';
           const isActive = status !== 'Paused';
           

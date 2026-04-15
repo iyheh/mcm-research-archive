@@ -3,44 +3,74 @@ import { Clock, Zap, Database, Users } from 'lucide-react';
 import { StatCard } from '../components/ui/StatCard';
 import { ServerActivityChart, ThemeMode } from '../Visuals';
 import { serverStats as initialStats } from '../serverData';
+import type { ServerHistoryEntry, ServerStats } from '../types/content';
+
+const STATS_CACHE_KEY = 'mcm_server_stats:v2';
+
+const parseSortableDate = (value: string) => {
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    return Date.UTC(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+  }
+
+  const dottedMatch = value.match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+  if (dottedMatch) {
+    return Date.UTC(Number(dottedMatch[1]), Number(dottedMatch[2]) - 1, Number(dottedMatch[3]));
+  }
+
+  const slashMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashMatch) {
+    return Date.UTC(Number(slashMatch[3]), Number(slashMatch[1]) - 1, Number(slashMatch[2]));
+  }
+
+  return 0;
+};
+
+const sortHistoryDescending = (history: ServerHistoryEntry[]) =>
+  [...history].sort((left, right) => parseSortableDate(right.date) - parseSortableDate(left.date));
+
+const normalizeStats = (stats: ServerStats): ServerStats => ({
+  ...stats,
+  history: sortHistoryDescending(stats.history),
+});
 
 export const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
-  const [stats, setStats] = useState<any>(() => {
+  const [stats, setStats] = useState<ServerStats>(() => {
     // Priority 1: Check localStorage for previously successful fetch
-    const cached = localStorage.getItem('mcm_server_stats');
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (e) {
-        return initialStats;
+    try {
+      const cached = localStorage.getItem(STATS_CACHE_KEY);
+      if (cached) {
+        return normalizeStats(JSON.parse(cached) as ServerStats);
       }
+    } catch {
+      return normalizeStats(initialStats);
     }
-    return initialStats;
+    return normalizeStats(initialStats);
   });
 
   useEffect(() => {
     // Dynamic fetch to get the absolute latest data from JSON
-    fetch('/server_stats.json')
-      .then(res => res.json())
+    fetch(`${import.meta.env.BASE_URL}server_stats.json`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load server stats');
+        }
+        return res.json();
+      })
       .then(data => {
-        // Explicit sort by date (newest first)
-        const sortedHistory = data.history.sort((a: any, b: any) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-        const finalData = { ...data, history: sortedHistory };
+        const finalData = normalizeStats(data as ServerStats);
         setStats(finalData);
         // Update cache for future use
-        localStorage.setItem('mcm_server_stats', JSON.stringify(finalData));
+        try {
+          localStorage.setItem(STATS_CACHE_KEY, JSON.stringify(finalData));
+        } catch {
+          // Ignore cache write failures and keep the fresh in-memory data.
+        }
       })
       .catch(() => {
         // Fallback handled by state initialization if fetch fails,
         // but we can force a sort on the current state just in case
-        setStats((prev: any) => {
-          const sorted = [...prev.history].sort((a: any, b: any) => {
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-          });
-          return { ...prev, history: sorted };
-        });
+        setStats((prev) => normalizeStats(prev));
       });
   }, []);
 
@@ -78,7 +108,7 @@ export const StatisticsPage = ({ theme }: { theme: ThemeMode }) => {
           <table className="w-full text-left font-mono text-xs">
             <thead><tr className="bg-card-hover text-sub border-b border-border-main"><th className="p-3 font-bold uppercase">Date</th><th className="p-3 font-bold uppercase text-right">Points</th><th className="p-3 font-bold uppercase text-right">Results</th></tr></thead>
             <tbody className="divide-y divide-border-main">
-              {stats.history.map((log: any, i: number) => (
+              {stats.history.map((log, i) => (
                 <tr key={i} className="hover:bg-accent/5 transition-colors group">
                   <td className="p-3 text-main group-hover:text-accent">{log.date}</td>
                   <td className="p-3 text-right text-main font-bold">{log.points.toLocaleString()}</td>

@@ -1,6 +1,7 @@
 import { CountUp } from '../../Visuals';
+import type { StatCardProps } from '../../types/content';
 
-export const StatCard = ({ label, value, sub, icon: Icon, isLive = false }: any) => (
+export const StatCard = ({ label, value, sub, icon: Icon, isLive = false }: StatCardProps) => (
   <div className={`bg-card p-6 border-l-4 ${isLive ? 'border-accent bg-card-hover' : 'border-border-main'} hover:border-accent transition-all duration-200 group relative overflow-hidden shadow-sm`}>
     <div className="flex justify-between items-start mb-2">
       <div className="flex items-center gap-2">
