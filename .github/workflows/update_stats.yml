@@ -1,82 +1,36 @@
-name: Auto Update WCG Stats & Deploy
+name: Deploy Site
 
 on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 */6 * * *' # 매 6시간마다 자동 실행 (UTC 기준)
-  workflow_dispatch:      # 깃허브 웹에서 수동 실행 버튼 (테스트용)
+  workflow_dispatch:
 
 permissions:
-  contents: write         # 저장소 읽기/쓰기/배포 권한 부여
+  contents: write
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 소스 코드 체크아웃
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # 2. 파이썬 환경 설정
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-
-      # 3. 파이썬 라이브러리 설치
-      - name: Install Python dependencies
-        run: |
-          pip install beautifulsoup4 requests
-
-      # 4. 크롤링 스크립트 실행 (데이터 갱신)
-      - name: Run Scraping Script
-        run: |
-          # scripts 폴더 안의 파이썬 파일 실행
-          python scripts/fetch_real_data_bs4.py
-
-      # 5. [에러 해결 구간] 변경된 데이터를 main 브랜치에 저장 (충돌 방지 로직 포함)
-      - name: Commit and Push changes to Main
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # 변경된 파일 추가
-          git add .
-          
-          # 변경사항이 있는지 확인
-          if ! git diff --quiet && ! git diff --staged --quiet; then
-            echo "Changes detected. Committing..."
-            git commit -m "🤖 Auto-update WCG stats data"
-            
-            # 🚨 [핵심] 에러가 났던 부분 해결책
-            # 서버에 있는 최신 코드를 먼저 내 쪽으로 당겨와서(Pull) 합침(Rebase)
-            git pull --rebase origin main
-            
-            # 그 다음 밀어넣기 (이제 에러 안 남)
-            git push origin main
-          else
-            echo "No changes to commit."
-          fi
-
-      # 6. Node.js 환경 설정
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      # 7. 패키지 설치 및 리액트 빌드
       - name: Install & Build
         run: |
-          npm install       # 의존성 설치
-          npm run build     # 빌드 실행 (dist 폴더 생성)
+          npm ci
+          npm run build
 
-      # 8. gh-pages 브랜치로 배포 (웹사이트 업데이트)
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist # Vite 빌드 결과물 폴더
-          force_orphan: true  # 깔끔하게 덮어쓰기
+          publish_dir: ./dist
+          force_orphan: true
