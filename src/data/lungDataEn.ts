@@ -3,6 +3,53 @@ export const lungDataEn = {
   description: "Lung cancer research, a key achievement of the MCM project, has combined actual clinical data such as patients' smoking status, gender, and survival period with genomic analysis to find the following decisive clues.",
   genes: [
     {
+      name: "SLC5A1",
+      full_name: "Solute Carrier Family 5 Member 1",
+      role: "Glucose/Galactose Uptake and SGLT1 Transport",
+      insight: "Featured in the April 30, 2026 June research update. SLC5A1 encodes SGLT1, which controls glucose and galactose uptake in the intestine and glucose reabsorption in the kidney. In lung adenocarcinoma, high expression was linked to higher mortality risk, making it a metabolism-driven risk marker.",
+      article_id: 52,
+      uniprot_id: "P13866",
+      deepDive: {
+        story: {
+          title: "SLC5A1: A Glucose Transporter Revealing the Fuel Line of Cancer Cells",
+          analogy: "SLC5A1 normally moves sugar through the intestine and kidney, but in lung adenocarcinoma it emerges as a warning signal linking cancer energy demand to poorer prognosis.",
+        },
+        sections: [
+          {
+            id: "glucose-transport",
+            title: "01. Existing Knowledge: SGLT1 Moving Sugar through the Intestine and Kidney",
+            content: "SLC5A1 encodes SGLT1, a sodium-dependent glucose transporter membrane protein. SGLT1 absorbs dietary glucose and galactose in small-intestinal enterocytes and reabsorbs filtered glucose in the renal proximal tubule. The transporter uses the sodium concentration gradient, maintained by the sodium/potassium pump and ATP, to pull glucose into the cell. Protein expression is high in the duodenum and small intestine, medium in the kidney, low in the gallbladder and epididymis, and undetected in other organs.",
+            figure: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig1and2.JPG",
+            figureCaption: "Figure 2. Sodium-dependent glucose transport by SGLT1 in the enterocyte and renal proximal tubule"
+          },
+          {
+            id: "cancer-fuel-pathway",
+            title: "02. Cancer Growth Mechanism: Glucose Supply and the PI3K/Akt/mTOR Pathway",
+            content: "Cancer cells rely heavily on glucose to fuel survival and proliferation. The source article explains that SLC5A1 overexpression is linked to lower survival rates in pancreatic, breast, and gastric cancer, and may fuel cancer growth by supplying glucose to tumor cells. Inhibition of SLC5A1 lowered glucose accumulation, cancer cell growth, and proliferation; in pancreatic cancer, some inhibited cells could not progress beyond the G1/G0 cell-cycle phase. PI3K/Akt/mTOR signaling was also blocked when SLC5A1 was inhibited, connecting abnormal energy-stress signaling to cancer progression.",
+            figure: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig4_nocap.JPG",
+            figureCaption: "Figure 3. How SLC5A1 overexpression may connect glucose uptake and PI3K/Akt/mTOR signaling to cancer growth and proliferation"
+          },
+          {
+            id: "lung-adc-risk",
+            title: "03. Lung Cancer Prognosis: High-Expression Risk in Adenocarcinoma",
+            content: "Although SLC5A1 is not highly expressed in lung tissue, the research team notes that low organ-level expression does not rule out prognostic value. In Kaplan-Meier analysis, 'lung adenocarcinoma (ADC)' patients with high SLC5A1 expression had a '47% increase' in mortality risk (HR 1.47). In squamous cell carcinoma (SQC), no additional prognostic risk was found between high and low expression. The sex-stratified analysis sharpened the signal: 'female' adenocarcinoma patients had a '72% increase' in mortality risk (HR 1.72, p-value 8.3*10-5), while 'male' adenocarcinoma patients had a '40% increase' (HR 1.4, p-value 0.005).",
+            multiFigures: [
+              {
+                url: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig7_nocap.JPG",
+                label: "Figure 6. SLC5A1 high-expression risk comparison in adenocarcinoma and squamous cell carcinoma"
+              },
+              {
+                url: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig8_nocap.JPG",
+                label: "Figure 7. Sex-stratified survival curves for female and male adenocarcinoma patients"
+              }
+            ],
+            figureCaption: "Figure 6 & 7. Lung cancer Kaplan-Meier analysis: 47% increased risk in adenocarcinoma, with 72% increased risk in female patients and 40% in male patients"
+          }
+        ],
+        conclusion: "The SLC5A1 study shows that glucose transport and cancer-cell energy metabolism may be linked to poorer prognosis in lung adenocarcinoma, with a stronger high-expression risk signal in female patients."
+      }
+    },
+    {
       name: "NELL2",
       full_name: "Neural EGF-Like Like 2",
       role: "Neural Development and Apoptosis Regulation",

@@ -3,6 +3,53 @@ export const lungData = {
   description: "MCM 프로젝트의 핵심 성과인 폐암 연구는 환자의 흡연 여부, 성별, 생존 기간 등 실제 임상 데이터와 유전체 분석을 결합하여 다음과 같은 결정적인 단서들을 찾아냈습니다.",
   genes: [
     {
+      name: "SLC5A1",
+      full_name: "Solute Carrier Family 5 Member 1",
+      role: "포도당/갈락토스 흡수 및 SGLT1 수송",
+      insight: "2026년 4월 30일 공개된 6월 연구 업데이트의 대상입니다. SLC5A1은 SGLT1 단백질을 암호화해 장의 포도당·갈락토스 흡수와 신장 재흡수를 조절합니다. 폐선암에서는 고발현이 사망 위험 증가와 연결되어 에너지 대사 기반의 위험 마커로 주목됩니다.",
+      article_id: 52,
+      uniprot_id: "P13866",
+      deepDive: {
+        story: {
+          title: "SLC5A1: 암세포의 연료 공급선을 드러내는 포도당 운반체",
+          analogy: "SLC5A1은 원래 장과 신장에서 당을 실어 나르는 수송체이지만, 폐선암 환경에서는 암세포의 에너지 수요와 나쁜 예후를 연결하는 위험 신호로 떠오릅니다.",
+        },
+        sections: [
+          {
+            id: "glucose-transport",
+            title: "01. 기존의 지식: 장과 신장에서 당을 운반하는 SGLT1",
+            content: "SLC5A1은 나트륨 의존성 포도당 수송체 계열의 막단백질 SGLT1을 암호화합니다. SGLT1은 소장 상피세포에서 식이 포도당과 갈락토스를 흡수하고, 신장 근위세뇨관에서는 여과된 포도당을 재흡수합니다. 이 수송은 세포 밖 나트륨 농도가 더 높은 기울기를 이용해 포도당을 함께 끌어들이며, 농도 기울기 유지에는 나트륨/칼륨 펌프와 ATP가 관여합니다.",
+            figure: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig1and2.JPG",
+            figureCaption: "Figure 2. SGLT1의 나트륨 의존성 포도당 수송: 소장 상피세포와 신장 근위세뇨관에서의 흡수 및 재흡수 기전"
+          },
+          {
+            id: "cancer-fuel-pathway",
+            title: "02. 암 성장 기전: 포도당 공급과 PI3K/Akt/mTOR 경로",
+            content: "암세포는 생존과 증식에 많은 포도당을 필요로 합니다. 원문은 SLC5A1 과발현이 췌장암, 유방암, 위암에서 낮은 생존율과 연결되고, 암세포에 포도당을 공급해 성장과 증식을 촉진할 수 있다고 설명합니다. SLC5A1 억제 실험에서는 포도당 축적과 세포 성장, 증식이 낮아졌고, 췌장암 세포 일부는 G1/G0 단계 이후로 진행하지 못했습니다. 또한 SLC5A1이 억제된 세포에서는 PI3K/Akt/mTOR 신호가 차단되어, 에너지 스트레스 반응이 비정상적으로 암 성장에 연결될 수 있음을 보여줍니다.",
+            figure: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig4_nocap.JPG",
+            figureCaption: "Figure 3. SLC5A1 과발현이 포도당 흡수와 PI3K/Akt/mTOR 신호를 통해 암 성장 및 증식과 연결되는 경로"
+          },
+          {
+            id: "lung-adc-risk",
+            title: "03. 폐암 예후 분석: 선암에서 나타나는 고발현 위험",
+            content: "폐 조직에서 SLC5A1 발현은 높지 않지만, 연구팀은 낮은 장기 발현이 예후 마커 가능성을 배제하지 않는다고 보았습니다. Kaplan-Meier 분석에서 '폐선암(ADC)' 환자는 SLC5A1 고발현일 때 사망 위험이 '47% 증가'(HR 1.47)했습니다. 반면 편평세포암(SQC)에서는 고발현과 저발현 사이의 추가 위험이 확인되지 않았습니다. 성별로 나누면 위험은 더 선명해졌습니다. '여성' 선암 환자에서는 사망 위험이 '72% 증가'(HR 1.72, p-value 8.3*10-5)했고, '남성' 선암 환자에서도 '40% 증가'(HR 1.4, p-value 0.005)했습니다.",
+            multiFigures: [
+              {
+                url: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig7_nocap.JPG",
+                label: "Figure 6. 선암(ADC)과 편평세포암(SQC)의 SLC5A1 고발현 위험 비교"
+              },
+              {
+                url: "https://worldcommunitygrid.org/images/prismic/mcm1_SLC5A1_fig8_nocap.JPG",
+                label: "Figure 7. 여성 및 남성 선암 환자군의 성별 대조 생존 곡선"
+              }
+            ],
+            figureCaption: "Figure 6 & 7. 폐암 Kaplan-Meier 분석: 선암에서의 47% 위험 증가와 여성 72%, 남성 40% 위험 증가"
+          }
+        ],
+        conclusion: "SLC5A1 연구는 폐선암에서 포도당 수송과 암세포 에너지 대사가 환자 예후 악화와 연결될 수 있음을 보여주며, 특히 여성 환자군에서 고발현 위험 신호가 더 강하다는 근거를 제시했습니다."
+      }
+    },
+    {
       name: "NELL2",
       full_name: "Neural EGF-Like Like 2",
       role: "신경 발달 및 세포 사멸(Apoptosis) 조절",

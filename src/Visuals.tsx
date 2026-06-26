@@ -486,7 +486,10 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: Gene, theme: The
   if (!deepDive) return null;
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-8 duration-700 bg-page min-h-screen relative overflow-hidden flex flex-col">
+    <div
+      data-testid="deep-dive-report"
+      className="animate-in fade-in slide-in-from-right-8 duration-700 bg-page h-[100dvh] relative overflow-hidden flex flex-col"
+    >
       <div className="absolute top-0 right-0 w-1/3 h-full bg-accent/5 -skew-x-12 transform origin-top pointer-events-none"></div>
       
       <div className="sticky top-0 z-50 bg-page/80 backdrop-blur-md border-b border-border-main p-6 flex justify-between items-center">
@@ -506,7 +509,11 @@ export const DeepDiveReport = ({ gene, theme, onBack }: { gene: Gene, theme: The
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scroll-smooth" ref={scrollContainerRef}>
+      <div
+        data-testid="deep-dive-scroll-container"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-smooth touch-pan-y"
+        ref={scrollContainerRef}
+      >
         <div className="max-w-5xl mx-auto px-6 py-20 space-y-40">
           {/* Hero Section */}
           <section className="space-y-8 animate-in fade-in slide-in-from-bottom-12 duration-1000">
