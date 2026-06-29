@@ -1,4 +1,3 @@
-# Manual refresh trigger: 2026-06-29T11:20:00+09:00
 name: Auto Update WCG Stats & Deploy
 
 on:
