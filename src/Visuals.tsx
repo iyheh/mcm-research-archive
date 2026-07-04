@@ -358,6 +358,9 @@ export const ProteinViewer = ({ uniprotId, fallbackSeed, theme }: { uniprotId: s
   );
 };
 
+const DEFAULT_ACTIVITY_CHART_MAX = 1_500_000;
+const ACTIVITY_CHART_TOP_MARGIN_RATIO = 0.08;
+
 // --- 6. ServerActivityChart ---
 export const ServerActivityChart = ({ data, theme }: { data: ServerHistoryEntry[], theme: ThemeMode }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -365,8 +368,11 @@ export const ServerActivityChart = ({ data, theme }: { data: ServerHistoryEntry[
   if (!data || data.length === 0) return null;
 
   const values = data.map(d => d.results);
-  const max = Math.max(...values);
-  const min = Math.min(...values);
+  const maxValue = Math.max(...values, 0);
+  const max = maxValue > DEFAULT_ACTIVITY_CHART_MAX
+    ? Math.ceil(maxValue * (1 + ACTIVITY_CHART_TOP_MARGIN_RATIO))
+    : DEFAULT_ACTIVITY_CHART_MAX;
+  const min = 0;
   const range = max - min || 1;
   const pointDivisor = Math.max(values.length - 1, 1);
   const width = 1000;

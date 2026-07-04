@@ -67,6 +67,8 @@ jobs:
       - name: Install & Build
         run: |
           npm ci
+          npm run test:workflow
+          npm run test:content
           npm run build
 
       - name: Deploy to GitHub Pages
