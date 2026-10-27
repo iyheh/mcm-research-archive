@@ -1,13 +1,13 @@
 export const serverStats = {
-  "runtime": "3:150:14:25:32",
-  "points": "9,893,570",
-  "results": "15,885",
+  "runtime": "312:023:19:07:11",
+  "points": "909,322,241",
+  "results": "1,442,348",
   "history": [
     {
         "date": "2026-10-27",
-        "runtime_raw": "3:150:14:25:32",
-        "points": 9893570,
-        "results": 15885
+        "runtime_raw": "312:023:19:07:11",
+        "points": 909322241,
+        "results": 1442348
     },
     {
         "date": "2026-10-26",
