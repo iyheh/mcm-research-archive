@@ -1,13 +1,19 @@
 export const serverStats = {
-  "runtime": "135:295:18:10:10",
-  "points": "387,835,441",
-  "results": "608,383",
+  "runtime": "1:015:01:21:15",
+  "points": "3,019,798",
+  "results": "4,742",
   "history": [
     {
+        "date": "2026-11-09",
+        "runtime_raw": "1:015:01:21:15",
+        "points": 3019798,
+        "results": 4742
+    },
+    {
         "date": "2026-11-08",
-        "runtime_raw": "135:295:18:10:10",
-        "points": 387835441,
-        "results": 608383
+        "runtime_raw": "259:312:23:02:13",
+        "points": 750700173,
+        "results": 1176546
     },
     {
         "date": "2026-11-07",
@@ -80,12 +86,6 @@ export const serverStats = {
         "runtime_raw": "576:298:22:52:30",
         "points": 1676116103,
         "results": 2655900
-    },
-    {
-        "date": "2026-10-26",
-        "runtime_raw": "561:340:11:26:11",
-        "points": 1642432639,
-        "results": 2602067
     }
 ]
 };
